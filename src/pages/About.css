@@ -1,0 +1,135 @@
+.stroke-text {
+  color: transparent !important;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.8);
+}
+
+.bio-split {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 4rem;
+  padding: 4rem 0;
+}
+
+.bio-label {
+  display: inline-block;
+  background-color: var(--color-yellow);
+  color: #000;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-pill);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+}
+
+.bio-name {
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--color-text-dark);
+  letter-spacing: -1px;
+}
+
+.bio-text {
+  font-size: 1.25rem;
+  color: #6B7280;
+  line-height: 1.8;
+}
+
+.mt-4 { margin-top: 2rem; }
+
+.info-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3rem 2rem;
+  border-top: 1px solid #E5E7EB;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 4rem 0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.text-lowercase { text-transform: lowercase; }
+
+.bg-light-section {
+  background-color: var(--color-bg-light);
+  padding: 8rem 0;
+}
+
+.services-title {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--color-text-dark);
+  margin-bottom: 4rem;
+}
+
+.services-grid-3col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
+  text-align: left;
+}
+
+.service-card {
+  background-color: white;
+  padding: 3rem 2.5rem;
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  transition: transform 0.3s;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+}
+
+.service-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.service-card h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: var(--color-text-dark);
+}
+
+.service-card p {
+  color: #6B7280;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 992px) {
+  .bio-split {
+    grid-template-columns: 1fr;
+  }
+  .info-grid-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-grid-3col {
+    grid-template-columns: 1fr;
+  }
+}

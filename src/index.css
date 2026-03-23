@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --color-primary: #005E54;
+  --color-primary-dark: #004a42;
+  --color-yellow: #FFCE00;
+  --color-text-dark: #1F2937;
+  --color-text-light: #FFFFFF;
+  --color-bg-light: #F9FAFB;
+  --color-bg-white: #FFFFFF;
+  
+  --font-main: 'Inter', sans-serif;
+  --border-radius-lg: 30px;
+  --border-radius-pill: 9999px;
+  --border-radius-md: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg-white);
+  color: var(--color-text-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Base utility classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  border-radius: var(--border-radius-pill);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: var(--color-text-dark);
+  color: var(--color-text-light);
+}
+
+.btn-secondary:hover {
+  background-color: black;
+  transform: translateY(-2px);
+}
+
+.section {
+  padding: 6rem 0;
+}
