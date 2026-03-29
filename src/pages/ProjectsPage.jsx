@@ -9,7 +9,7 @@ const ProjectsPage = () => {
       <section className="inner-hero">
         <div className="container inner-hero-grid">
           <div className="inner-hero-content">
-            <h1 className="inner-hero-title">CASE STUDIES</h1>
+            <h1 className="inner-hero-title">MY PROJECTS</h1>
             <svg width="220" height="20" viewBox="0 0 220 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="inner-hero-squiggle">
               <path d="M2.5 13.5C22.5 3.5 37.5 16 57 16C76.5 16 90.5 5.5 110.5 7C130.5 8.5 145 13.5 167 11.5C189 9.5 204.5 12.5 217.5 12.5" stroke="var(--color-yellow)" strokeWidth="5" strokeLinecap="round"/>
             </svg>
