@@ -90,26 +90,46 @@
 
 @media (max-width: 1200px) {
   .nav-menu {
-    gap: 1rem;
-    flex-wrap: wrap;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    height: 100vh;
+    background-color: var(--color-primary, #0f3f38);
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
+    gap: 2.5rem;
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 99;
   }
+  
+  .nav-menu.active {
+    right: 0;
+  }
+
   .nav-link {
-    font-size: 0.95rem;
+    font-size: 1.5rem;
   }
+
   .menu-btn {
     display: flex;
+    z-index: 101;
   }
+  
   .social-icons {
     display: flex;
   }
 }
 
 @media (max-width: 768px) {
-  .nav-menu {
-    gap: 0.5rem;
-  }
   .nav-link {
-    font-size: 0.85rem;
+    font-size: 1.35rem;
+  }
+  .social-icons {
+    display: none;
+  }
+  .logo-text {
+    font-size: 1.2rem;
   }
 }
