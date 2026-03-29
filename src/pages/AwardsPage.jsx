@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import '../pages/About.css'; // Leverage existing 3-col grid logic
 
 const awards = [
@@ -9,8 +10,22 @@ const awards = [
 ];
 
 const AwardsPage = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
   return (
-    <div className="inner-page-wrapper">
+    <motion.div 
+      className="inner-page-wrapper"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <section className="inner-hero">
         <div className="container inner-hero-grid">
           <div className="inner-hero-content">
@@ -32,19 +47,25 @@ const AwardsPage = () => {
             It’s an honor to be acknowledged for my hard work across various technical competitions and internships.
           </p>
           
-          <div className="services-grid-3col">
+          <motion.div 
+            className="services-grid-3col"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
             {awards.map(award => (
-              <div className="service-card" key={award.id} style={{ border: '1px solid #f3f4f6', backgroundColor: '#F9FAFB' }}>
+              <motion.div className="service-card" key={award.id} variants={itemVariants} style={{ border: '1px solid #f3f4f6', backgroundColor: '#F9FAFB' }}>
                 <div className="service-icon" style={{ color: 'var(--color-primary)', marginBottom: '1rem', fontSize: '2.5rem' }}>🏆</div>
                 <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', lineHeight: '1.3' }}>{award.title}</h3>
                 <div style={{ fontWeight: 800, color: '#FFB800', marginBottom: '1rem', fontSize: '1.1rem' }}>{award.prize}</div>
                 <p style={{ fontSize: '1rem', lineHeight: '1.6' }}><strong>{award.issuer}</strong><br/><br/>{award.desc}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
 

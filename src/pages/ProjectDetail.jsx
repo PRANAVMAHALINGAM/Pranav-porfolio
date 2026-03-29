@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { projectsData } from '../data/projectsData';
 
 const ProjectDetail = () => {
@@ -16,7 +17,12 @@ const ProjectDetail = () => {
   }
 
   return (
-    <div className="inner-page-wrapper">
+    <motion.div 
+      className="inner-page-wrapper"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <section className="inner-hero">
         <div className="container inner-hero-grid">
           <div className="inner-hero-content">
@@ -60,7 +66,7 @@ const ProjectDetail = () => {
           </div>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
 

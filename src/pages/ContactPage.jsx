@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Linkedin, FileDown } from 'lucide-react';
+import { motion } from 'framer-motion';
 import './ContactPage.css';
 
 const ContactPage = () => {
@@ -31,7 +32,12 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="inner-page-wrapper">
+    <motion.div 
+      className="inner-page-wrapper"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <section className="inner-hero contact-hero">
         <div className="container inner-hero-grid">
           <div className="inner-hero-content">
@@ -102,7 +108,7 @@ const ContactPage = () => {
 
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
 

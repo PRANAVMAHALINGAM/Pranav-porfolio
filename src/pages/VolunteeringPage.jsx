@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import '../components/Experience.css';
 
 const volunteerData = [
@@ -9,8 +10,22 @@ const volunteerData = [
 ];
 
 const VolunteeringPage = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
   return (
-    <div className="inner-page-wrapper">
+    <motion.div 
+      className="inner-page-wrapper"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <section className="inner-hero">
         <div className="container inner-hero-grid">
           <div className="inner-hero-content">
@@ -32,21 +47,27 @@ const VolunteeringPage = () => {
             <p className="projects-intro-desc" style={{ fontSize: '1.25rem', color: '#6B7280', maxWidth: '700px', margin: '1rem auto 0' }}>Volunteering is not only an important part of my life, but also plays a big role in my personal philosophy.</p>
           </div>
           
-          <div className="timeline">
+          <motion.div 
+            className="timeline"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
             {volunteerData.map((item, index) => (
-              <div className={`timeline-item ${index % 2 === 0 ? 'left' : 'right'}`} key={item.id}>
+              <motion.div className={`timeline-item ${index % 2 === 0 ? 'left' : 'right'}`} key={item.id} variants={itemVariants}>
                 <div className="timeline-content">
                   <div className="timeline-year" style={{ color: 'var(--color-primary)', fontWeight: 800, marginBottom: '0.5rem' }}>{item.year}</div>
                   <h3 className="timeline-title" style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text-dark)' }}>{item.title}</h3>
                   <h4 className="timeline-company" style={{ fontSize: '1.05rem', color: '#6B7280', marginBottom: '1rem' }}>{item.company}</h4>
                   <p className="timeline-desc" style={{ lineHeight: '1.6', color: 'var(--color-text-dark)', opacity: 0.8 }}>{item.description}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
 

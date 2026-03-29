@@ -1,11 +1,26 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import './ProjectsPage.css';
 import { projectsData } from '../data/projectsData';
 
 const ProjectsPage = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
+
   return (
-    <div className="inner-page-wrapper">
+    <motion.div 
+      className="inner-page-wrapper"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <section className="inner-hero">
         <div className="container inner-hero-grid">
           <div className="inner-hero-content">
@@ -29,9 +44,16 @@ const ProjectsPage = () => {
 
       <section className="projects-gallery section pt-0">
         <div className="container">
-          <div className="gallery-layout-2col">
+          <motion.div 
+            className="gallery-layout-2col"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
             {projectsData.map((proj) => (
-              <Link to={`/projects/${proj.id}`} key={proj.id} className="gallery-card-lg" style={{ textDecoration: 'none' }}>
+              <motion.div variants={itemVariants} key={proj.id}>
+                <Link to={`/projects/${proj.id}`} className="gallery-card-lg" style={{ textDecoration: 'none' }}>
                 <div 
                   className="gallery-img-area"
                   style={proj.image ? { backgroundImage: `url(${proj.image})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'transparent' } : {}}
@@ -41,9 +63,10 @@ const ProjectsPage = () => {
                     <span className="g-label-bottom">{proj.category}</span>
                   </div>
                 </div>
-              </Link>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           <div className="load-more-wrap text-center">
             <button className="btn btn-secondary btn-load-more">Load More</button>
           </div>
@@ -58,7 +81,7 @@ const ProjectsPage = () => {
           </div>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
 
