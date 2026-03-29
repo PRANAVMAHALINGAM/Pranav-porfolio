@@ -22,9 +22,10 @@ const Header = () => {
           <Link to="/" className="nav-link" onClick={closeMenu}>Home</Link>
           <Link to="/about" className="nav-link" onClick={closeMenu}>About</Link>
           <Link to="/projects" className="nav-link" onClick={closeMenu}>Projects</Link>
-          <Link to="/volunteering" className="nav-link" onClick={closeMenu}>Volunteering</Link>
           <Link to="/awards" className="nav-link" onClick={closeMenu}>Awards</Link>
+          <Link to="/blog" className="nav-link" onClick={closeMenu}>Blog</Link>
           <Link to="/contact" className="nav-link" onClick={closeMenu}>Contact</Link>
+          <Link to="/volunteering" className="nav-link" onClick={closeMenu}>Volunteering</Link>
         </nav>
 
         <div className="header-actions">
