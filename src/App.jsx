@@ -9,6 +9,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import VolunteeringPage from './pages/VolunteeringPage';
 import AwardsPage from './pages/AwardsPage';
 import BlogPage from './pages/BlogPage';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/volunteering" element={<VolunteeringPage />} />
         </Routes>
       </main>
+      <Analytics />
     </Router>
   );
 }
