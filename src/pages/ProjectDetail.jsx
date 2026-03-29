@@ -19,7 +19,12 @@ const ProjectDetail = () => {
   return (
     <div className="inner-page-wrapper">
       <section className="inner-hero">
-        <div className="container inner-hero-grid">
+        <motion.div 
+          className="container inner-hero-grid"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="inner-hero-content">
             <h1 className="inner-hero-title" style={{ fontSize: '3.5rem', lineHeight: '1.2' }}>{project.title.toUpperCase()}</h1>
             <svg width="220" height="20" viewBox="0 0 220 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="inner-hero-squiggle">
@@ -30,7 +35,7 @@ const ProjectDetail = () => {
           <div className="inner-hero-image-wrap">
             <img src={project.image || "/profile.jpg"} alt={project.title} className="inner-hero-image" style={{ objectFit: project.image ? 'contain' : 'cover' }} />
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <section className="section bg-white text-dark">

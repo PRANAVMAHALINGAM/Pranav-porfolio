@@ -17,7 +17,12 @@ const ProjectsPage = () => {
   return (
     <div className="inner-page-wrapper">
       <section className="inner-hero">
-        <div className="container inner-hero-grid">
+        <motion.div 
+          className="container inner-hero-grid"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="inner-hero-content">
             <h1 className="inner-hero-title">MY PROJECTS</h1>
             <svg width="220" height="20" viewBox="0 0 220 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="inner-hero-squiggle">
@@ -27,7 +32,7 @@ const ProjectsPage = () => {
           <div className="inner-hero-image-wrap">
             <img src="/profile.jpg" alt="Pranav Mahalingam" className="inner-hero-image" />
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <section className="projects-intro section text-center">
