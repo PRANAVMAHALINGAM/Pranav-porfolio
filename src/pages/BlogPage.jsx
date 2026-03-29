@@ -66,7 +66,15 @@ const BlogPage = () => {
                 variants={itemVariants}
               >
                 <div className="blog-card-image-wrap">
-                  <img src={post.image} alt={post.title} className="blog-card-image" />
+                  <img 
+                    src={post.image} 
+                    alt={post.title} 
+                    className="blog-card-image" 
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'; // Tech fallback
+                      e.target.onerror = null;
+                    }}
+                  />
                   {post.category && <span className="blog-card-category">{post.category}</span>}
                 </div>
                 
