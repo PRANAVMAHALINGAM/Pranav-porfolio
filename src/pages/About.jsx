@@ -45,8 +45,8 @@ const About = () => {
             <p className="bio-text mt-4">
               My previous role at Dhvani Analytic Intelligence involved acting as a Product Owner for the PixIQ AI system, reducing project turnaround time by 15% and increasing operational throughput by 25%.
             </p>
-            <a href="/Pranav_Software_Engineer_Resume (5).pdf" target="_blank" className="btn btn-primary mt-4">
-               DOWNLOAD CV
+            <a href="/Pranav_Software_Engineer_Resume.pdf" target="_blank" rel="noreferrer" className="btn btn-primary mt-4">
+               View Resume
             </a>
           </div>
         </motion.div>
