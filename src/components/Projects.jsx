@@ -45,7 +45,7 @@ const Projects = () => {
               >
                 <div 
                   className="project-image-placeholder"
-                  style={project.image ? { backgroundImage: `url(${project.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                  style={project.image ? { backgroundImage: `url(${project.image})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : {}}
                 >
                   <span className="project-category">{project.category}</span>
                 </div>
