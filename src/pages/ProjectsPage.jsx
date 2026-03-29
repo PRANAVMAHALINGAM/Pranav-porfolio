@@ -52,8 +52,8 @@ const ProjectsPage = () => {
             viewport={{ once: true, margin: "-50px" }}
           >
             {projectsData.map((proj) => (
-              <motion.div variants={itemVariants} key={proj.id}>
-                <Link to={`/projects/${proj.id}`} className="gallery-card-lg" style={{ textDecoration: 'none' }}>
+              <motion.div variants={itemVariants} key={proj.id} style={{ display: 'block', height: '100%' }}>
+                <Link to={`/projects/${proj.id}`} className="gallery-card-lg" style={{ textDecoration: 'none', display: 'block' }}>
                 <div 
                   className="gallery-img-area"
                   style={proj.image ? { backgroundImage: `url(${proj.image})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'transparent' } : {}}
