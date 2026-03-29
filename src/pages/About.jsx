@@ -45,9 +45,14 @@ const About = () => {
             <p className="bio-text mt-4">
               My previous role at Dhvani Analytic Intelligence involved acting as a Product Owner for the PixIQ AI system, reducing project turnaround time by 15% and increasing operational throughput by 25%.
             </p>
-            <a href="/Pranav_Software_Engineer_Resume.pdf" target="_blank" rel="noreferrer" className="btn btn-primary mt-4">
-               View Resume
-            </a>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+              <a href="/Pranav_Software_Engineer_Resume.pdf" target="_blank" rel="noreferrer" className="btn btn-primary">
+                 View Resume
+              </a>
+              <a href="/Pranav_Software_Engineer_Resume.pdf" download="Pranav_Software_Engineer_Resume.pdf" className="btn btn-secondary">
+                 Download Resume
+              </a>
+            </div>
           </div>
         </motion.div>
       </section>
