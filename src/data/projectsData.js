@@ -56,9 +56,11 @@ export const projectsData = [
     id: 'raksha',
     title: 'RAKSHA - Bike Safety',
     category: 'IoT / Hardware',
-    date: '2022',
-    description: 'Designed an emergency response safety device that monitors acceleration, motion, and GPS data to detect accidents and notify emergency contacts immediately. Built from recycled materials.',
-    technologies: ['IoT', 'ESP32', 'GPS/GSM', '3D Printing'],
-    event: '1st Place - Project Day, SRM Institute'
+    date: 'Dec 2022',
+    description: 'Developed an award winning IoT safety device for bikers that detects accidents and sends real-time alerts to emergency contacts.',
+    technologies: ['ESP32', 'Firebase', 'IoT', 'C++'],
+    event: 'Project Day Winner 2022, SRMIST',
+    image: '/RAKSHA.png',
+    imageFit: 'cover'
   }
 ];
