@@ -17,12 +17,7 @@ const ProjectDetail = () => {
   }
 
   return (
-    <motion.div 
-      className="inner-page-wrapper"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="inner-page-wrapper">
       <section className="inner-hero">
         <div className="container inner-hero-grid">
           <div className="inner-hero-content">
@@ -66,7 +61,7 @@ const ProjectDetail = () => {
           </div>
         </div>
       </section>
-    </motion.div>
+    </div>
   );
 };
 
