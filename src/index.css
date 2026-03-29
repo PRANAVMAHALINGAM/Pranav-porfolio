@@ -82,3 +82,22 @@ ul {
 .section {
   padding: 6rem 0;
 }
+
+/* Global Responsive Typography & Spacing */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Shrinks all rem-based units globally */
+  }
+  .container {
+    padding: 0 1rem;
+  }
+  .section {
+    padding: 4rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12px;
+  }
+}

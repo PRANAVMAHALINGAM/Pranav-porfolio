@@ -132,4 +132,16 @@
   .info-grid-3col {
     grid-template-columns: 1fr;
   }
+  .bio-name {
+    font-size: 3rem;
+  }
+  .services-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bio-name {
+    font-size: 2.5rem;
+  }
 }

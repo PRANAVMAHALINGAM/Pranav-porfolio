@@ -128,8 +128,43 @@
 
   .hero-right {
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    gap: 2rem;
     text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  .stat-value {
+    font-size: 3rem;
+  }
+  .portrait-container {
+    width: 280px;
+    height: 420px;
+  }
+  .hero-right {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  .stat-value {
+    font-size: 2.5rem;
+  }
+  .portrait-container {
+    width: 240px;
+    height: 360px;
+  }
+  .hero-right {
+    flex-direction: column;
+    gap: 1.5rem;
   }
 }
