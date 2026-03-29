@@ -46,9 +46,9 @@ const Experience = () => {
   return (
     <section className="experience-section section">
       <div className="container">
-        <h2 className="section-title text-center">My Experience So far</h2>
-        
-        <motion.div 
+        <h2 className="section-title text-center">My Experiences So far</h2>
+
+        <motion.div
           className="timeline"
           variants={containerVariants}
           initial="hidden"
