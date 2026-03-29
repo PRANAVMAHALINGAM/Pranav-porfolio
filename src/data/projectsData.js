@@ -16,7 +16,8 @@ export const projectsData = [
     date: 'Jan 2026',
     description: 'Developed a GitHub extension to automate repository organization by identifying and removing dead branches, significantly improving version control hygiene for users.',
     technologies: ['GitHub API', 'Node.js', 'Git'],
-    event: 'Open Source Innovation, University of Michigan'
+    event: 'Open Source Innovation, University of Michigan',
+    image: '/git-landscaper.png'
   },
   {
     id: 'git-hired',
