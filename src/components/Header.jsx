@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Globe, Instagram, Menu } from 'lucide-react';
+import { Linkedin, Github, FileDown, Menu } from 'lucide-react';
 import './Header.css';
 
 const Header = () => {
@@ -24,8 +24,9 @@ const Header = () => {
 
         <div className="header-actions">
           <div className="social-icons">
-            <a href="https://bit.ly/mpranavm" aria-label="Website" target="_blank" rel="noreferrer"><Globe size={20} /></a>
-            <a href="https://linkedin.com/in/pranavmahalingam" aria-label="LinkedIn" target="_blank" rel="noreferrer"><Instagram size={20} /></a>
+            <a href="https://www.linkedin.com/in/pranav-mahalingam/" aria-label="LinkedIn" target="_blank" rel="noreferrer"><Linkedin size={20} /></a>
+            <a href="https://github.com/PRANAVMAHALINGAM" aria-label="GitHub" target="_blank" rel="noreferrer"><Github size={20} /></a>
+            <a href="/Pranav_Software_Engineer_Resume.pdf" aria-label="Resume" target="_blank" rel="noreferrer" download="Pranav_Software_Engineer_Resume.pdf"><FileDown size={20} /></a>
           </div>
           <button className="menu-btn" aria-label="Menu">
             <Menu size={24} />

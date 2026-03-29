@@ -1,8 +1,34 @@
 import React, { useState } from 'react';
+import { Mail, Linkedin, FileDown } from 'lucide-react';
 import './ContactPage.css';
 
 const ContactPage = () => {
-  const [activeBudget, setActiveBudget] = useState('2-5k');
+  const [result, setResult] = useState("");
+
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    setResult("Sending....");
+    const formData = new FormData(event.target);
+
+    // Replace with your Web3Forms Access Key
+    formData.append("access_key", "f9866705-4011-4809-8043-bc5505eee696");
+
+    const response = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setResult("Message sent successfully!");
+      event.target.reset();
+      setTimeout(() => setResult(''), 5000); // clear after 5 secs
+    } else {
+      console.log("Error", data);
+      setResult(data.message);
+    }
+  };
 
   return (
     <div className="inner-page-wrapper">
@@ -11,7 +37,7 @@ const ContactPage = () => {
           <div className="inner-hero-content">
             <h1 className="inner-hero-title">CONTACT ME</h1>
             <svg width="220" height="20" viewBox="0 0 220 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="inner-hero-squiggle">
-              <path d="M2.5 13.5C22.5 3.5 37.5 16 57 16C76.5 16 90.5 5.5 110.5 7C130.5 8.5 145 13.5 167 11.5C189 9.5 204.5 12.5 217.5 12.5" stroke="var(--color-yellow)" strokeWidth="5" strokeLinecap="round"/>
+              <path d="M2.5 13.5C22.5 3.5 37.5 16 57 16C76.5 16 90.5 5.5 110.5 7C130.5 8.5 145 13.5 167 11.5C189 9.5 204.5 12.5 217.5 12.5" stroke="var(--color-yellow)" strokeWidth="5" strokeLinecap="round" />
             </svg>
           </div>
           <div className="inner-hero-image-wrap">
@@ -22,60 +48,55 @@ const ContactPage = () => {
 
       <section className="contact-info-form section">
         <div className="container contact-split">
-          
+
           {/* Info Side */}
           <div className="contact-info-side">
             <div className="info-block">
               <div className="info-icon">📍</div>
               <div>
                 <h4 className="info-title">Location</h4>
-                <p className="info-text">Ann Arbor, MI<br/>United States</p>
+                <p className="info-text">Ann Arbor, MI<br />United States</p>
               </div>
             </div>
-            <div className="info-block" style={{marginTop: '3rem'}}>
-              <div className="info-icon">📞</div>
+            <div className="info-block" style={{ marginTop: '3rem' }}>
+              <div className="info-icon">📲</div>
               <div>
-                <h4 className="info-title">Phone & Email</h4>
-                <p className="info-text">+1 (734) 678-6093<br/>mpranavm@umich.edu</p>
+                <h4 className="info-title">Contact & Socials</h4>
+                <div className="contact-social-icons">
+                  <a href="mailto:mpranavm@umich.edu" aria-label="Mail" target="_blank" rel="noreferrer"><Mail size={24} /></a>
+                  <a href="https://www.linkedin.com/in/pranav-mahalingam/" aria-label="LinkedIn" target="_blank" rel="noreferrer"><Linkedin size={24} /></a>
+                  <a href="/Pranav_Software_Engineer_Resume.pdf" aria-label="Resume" target="_blank" rel="noreferrer" download="Pranav_Software_Engineer_Resume.pdf"><FileDown size={24} /></a>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Form Side */}
           <div className="contact-form-side">
-            <h2 className="form-heading">LET'S TALK ABOUT YOUR PROJECT</h2>
+            <h2 className="form-heading">LET'S TALK</h2>
             <p className="form-desc">Fill out the form below and I will get back to you as soon as possible.</p>
-            
-            <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+
+            <form className="contact-form" onSubmit={onSubmit}>
               <div className="form-group">
                 <label>Your Name *</label>
-                <input type="text" placeholder="John Doe" required />
+                <input type="text" name="name" placeholder="John Doe" required />
               </div>
               <div className="form-group">
                 <label>Your Email *</label>
-                <input type="email" placeholder="john@email.com" required />
+                <input type="email" name="email" placeholder="john@email.com" required />
               </div>
               <div className="form-group">
-                <label>Tell me about your project</label>
-                <textarea placeholder="I want a super-duper application..." rows="4"></textarea>
-              </div>
-              
-              <div className="budget-group">
-                <label>Project budget (USD)</label>
-                <div className="budget-pills">
-                  {['1-2k', '2-5k', '5-10k', '< 10k'].map((budget) => (
-                    <span 
-                      key={budget}
-                      className={`budget-pill ${activeBudget === budget ? 'active' : ''}`}
-                      onClick={() => setActiveBudget(budget)}
-                    >
-                      {budget}
-                    </span>
-                  ))}
-                </div>
+                <label>The purpose for contacting me *</label>
+                <textarea name="message" placeholder="I would like to discuss..." rows="6" required></textarea>
               </div>
 
               <button type="submit" className="btn btn-primary submit-btn">Submit</button>
+
+              {result && (
+                <div className={`form-result ${result.includes('success') ? 'success' : 'pending'}`}>
+                  {result}
+                </div>
+              )}
             </form>
           </div>
 

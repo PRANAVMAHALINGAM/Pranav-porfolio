@@ -67,7 +67,7 @@
   border: none;
   color: var(--color-text-light);
   cursor: pointer;
-  display: flex;
+  display: none;
   align-items: center;
 }
 
@@ -97,8 +97,11 @@
   .nav-link {
     font-size: 0.95rem;
   }
+  .menu-btn {
+    display: flex;
+  }
   .social-icons {
-    display: none;
+    display: flex;
   }
 }
 

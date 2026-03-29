@@ -12,6 +12,12 @@
   gap: 2rem;
 }
 
+.project-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .project-card {
   border-radius: var(--border-radius-md);
   overflow: hidden;

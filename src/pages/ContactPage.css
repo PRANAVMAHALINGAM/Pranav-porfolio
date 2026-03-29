@@ -176,6 +176,44 @@
   margin-top: 1rem;
 }
 
+.contact-social-icons {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.contact-social-icons a {
+  color: var(--color-primary);
+  opacity: 0.8;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-social-icons a:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.form-result {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.form-result.success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.form-result.pending, .form-result.error {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
 @media (max-width: 992px) {
   .contact-split {
     grid-template-columns: 1fr;
