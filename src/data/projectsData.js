@@ -6,7 +6,8 @@ export const projectsData = [
     date: 'Feb 2026',
     description: 'Developed an LLM-powered behavioral finance app that recontextualizes spending into labor hours and carbon impact. It features a "Freedom Cost" algorithm to visualize how discretionary purchases delay user-defined milestones.',
     technologies: ['LLM', 'React', 'Python', 'AWS'],
-    event: 'TartanHacks 2026 (CMU), Pittsburgh, PA'
+    event: 'TartanHacks 2026 (CMU), Pittsburgh, PA',
+    image: '/budgetbruh.png'
   },
   {
     id: 'git-landscaper',

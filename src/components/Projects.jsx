@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import './Projects.css';
 
 const projects = [
-  { id: 'budgetbruh', title: 'BudgetBruh (TartanHacks)', category: 'LLM / Finance App' },
+  { id: 'budgetbruh', title: 'BudgetBruh (TartanHacks)', category: 'LLM / Finance App', image: '/budgetbruh.png' },
   { id: 'git-landscaper', title: 'Git-Landscaper (UMich)', category: 'Open Source / Git' },
   { id: 'git-hired', title: 'Git-Hired (Claude Builders)', category: 'Agentic AI Interviewer' },
   { id: 'mcq-generation', title: 'MCQ Generation System', category: 'NLP / Research' },
@@ -43,7 +43,10 @@ const Projects = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <div className="project-image-placeholder">
+                <div 
+                  className="project-image-placeholder"
+                  style={project.image ? { backgroundImage: `url(${project.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                >
                   <span className="project-category">{project.category}</span>
                 </div>
                 <h3 className="project-title">{project.title}</h3>

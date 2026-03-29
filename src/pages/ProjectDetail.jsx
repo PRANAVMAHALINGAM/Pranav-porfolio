@@ -27,7 +27,7 @@ const ProjectDetail = () => {
             <p className="text-white mt-4" style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{project.category}</p>
           </div>
           <div className="inner-hero-image-wrap">
-            <img src="/profile.jpg" alt="Pranav" className="inner-hero-image" />
+            <img src={project.image || "/profile.jpg"} alt={project.title} className="inner-hero-image" />
           </div>
         </div>
       </section>

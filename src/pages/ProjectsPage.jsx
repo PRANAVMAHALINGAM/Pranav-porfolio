@@ -32,7 +32,10 @@ const ProjectsPage = () => {
           <div className="gallery-layout-2col">
             {projectsData.map((proj) => (
               <Link to={`/projects/${proj.id}`} key={proj.id} className="gallery-card-lg" style={{ textDecoration: 'none' }}>
-                <div className="gallery-img-area">
+                <div 
+                  className="gallery-img-area"
+                  style={proj.image ? { backgroundImage: `url(${proj.image})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: 'transparent' } : {}}
+                >
                   <div className="gallery-labels">
                     <span className="g-label-top">{proj.title}</span>
                     <span className="g-label-bottom">{proj.category}</span>
