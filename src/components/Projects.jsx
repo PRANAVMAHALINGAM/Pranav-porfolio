@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import './Projects.css';
 
 const projects = [
-  { id: 'budgetbruh', title: 'BudgetBruh (TartanHacks)', category: 'LLM / Finance App', image: '/budgetbruh.png' },
-  { id: 'git-landscaper', title: 'Git-Landscaper (UMich)', category: 'Open Source / Git', image: '/git-landscaper.png' },
-  { id: 'git-hired', title: 'Git-Hired (Claude Builders)', category: 'Agentic AI Interviewer', image: '/githired.jpg' },
+  { id: 'budgetbruh', title: 'BudgetBruh (TartanHacks)', category: 'LLM / Finance App', image: '/budgetbruh.png', imageFit: 'contain' },
+  { id: 'git-landscaper', title: 'Git-Landscaper (UMich)', category: 'Open Source / Git', image: '/git-landscaper.png', imageFit: 'contain' },
+  { id: 'git-hired', title: 'Git-Hired (Claude Builders)', category: 'Agentic AI Interviewer', image: '/githired.jpg', imageFit: 'cover' },
   { id: 'mcq-generation', title: 'MCQ Generation System', category: 'NLP / Research' },
   { id: 'ai-bin', title: 'AI Bin: Smart Garbage', category: 'CV / IoT' },
   { id: 'raksha', title: 'RAKSHA - Bike Safety', category: 'IoT / Hardware' },
@@ -45,7 +45,7 @@ const Projects = () => {
               >
                 <div 
                   className="project-image-placeholder"
-                  style={project.image ? { backgroundImage: `url(${project.image})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : {}}
+                  style={project.image ? { backgroundImage: `url(${project.image})`, backgroundSize: project.imageFit || 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : {}}
                 >
                   <span className="project-category">{project.category}</span>
                 </div>

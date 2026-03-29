@@ -7,7 +7,8 @@ export const projectsData = [
     description: 'Developed an LLM-powered behavioral finance app that recontextualizes spending into labor hours and carbon impact. It features a "Freedom Cost" algorithm to visualize how discretionary purchases delay user-defined milestones.',
     technologies: ['LLM', 'React', 'Python', 'AWS'],
     event: 'TartanHacks 2026 (CMU), Pittsburgh, PA',
-    image: '/budgetbruh.png'
+    image: '/budgetbruh.png',
+    imageFit: 'contain'
   },
   {
     id: 'git-landscaper',
@@ -17,7 +18,8 @@ export const projectsData = [
     description: 'Developed a GitHub extension to automate repository organization by identifying and removing dead branches, significantly improving version control hygiene for users.',
     technologies: ['GitHub API', 'Node.js', 'Git'],
     event: 'Open Source Innovation, University of Michigan',
-    image: '/git-landscaper.png'
+    image: '/git-landscaper.png',
+    imageFit: 'contain'
   },
   {
     id: 'git-hired',
@@ -27,7 +29,8 @@ export const projectsData = [
     description: 'Built an AI-powered virtual interviewer using agentic AI concepts to simulate real interview scenarios within a 24-hour hackathon.',
     technologies: ['Agentic AI', 'LLM', 'Python Core'],
     event: 'Best Project – Claude Builders Club Hackathon',
-    image: '/githired.jpg'
+    image: '/githired.jpg',
+    imageFit: 'cover'
   },
   {
     id: 'mcq-generation',
