@@ -61,7 +61,7 @@ const About = () => {
       <section className="about-info-grid section pt-0">
         <div className="container">
           <motion.div 
-            className="info-grid-3col"
+            className="info-grid-4col"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
@@ -76,20 +76,12 @@ const About = () => {
               <span className="info-value">Ann Arbor, MI</span>
             </div>
             <div className="info-item">
-              <span className="info-label">Email</span>
-              <span className="info-value text-lowercase">mpranavm@umich.edu</span>
-            </div>
-            <div className="info-item">
               <span className="info-label">Experience</span>
               <span className="info-value">3+ Years</span>
             </div>
             <div className="info-item">
               <span className="info-label">Roles</span>
               <span className="info-value">AI Engineer, Consultant</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Phone</span>
-              <span className="info-value">+1 (734) 678-6093</span>
             </div>
           </motion.div>
         </div>
