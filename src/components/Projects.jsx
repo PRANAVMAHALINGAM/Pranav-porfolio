@@ -7,7 +7,7 @@ const projects = [
   { id: 'git-landscaper', title: 'Git-Landscaper (UMich)', category: 'Open Source / Git', image: '/git-landscaper.png', imageFit: 'contain' },
   { id: 'git-hired', title: 'Git-Hired (Claude Builders)', category: 'Agentic AI Interviewer', image: '/githired.jpg', imageFit: 'cover' },
   { id: 'mcq-generation', title: 'MCQ Generation System', category: 'NLP / Research' },
-  { id: 'ai-bin', title: 'AI Bin: Smart Garbage', category: 'CV / IoT' },
+  { id: 'ai-bin', title: 'AI Bin: Smart Garbage', category: 'CV / IoT', image: '/AIbin.png', imageFit: 'cover' },
   { id: 'raksha', title: 'RAKSHA - Bike Safety', category: 'IoT / Hardware' },
 ];
 

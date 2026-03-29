@@ -45,10 +45,12 @@ export const projectsData = [
     id: 'ai-bin',
     title: 'AI Bin: Smart Garbage',
     category: 'CV / IoT',
-    date: '2020',
-    description: 'Created a smart bin integrating IoT and AI to automate waste segregation using object detection (YOLO v5) and machine learning, aimed at improving recycling rates.',
-    technologies: ['Computer Vision', 'IoT', 'Raspberry Pi', 'YOLO v5'],
-    event: 'Swach Bharat Project Showcase'
+    date: 'Jun 2024',
+    description: 'Developed an automated waste segregation system using computer vision and edge computing to classify and sort garbage in real-time.',
+    technologies: ['TensorFlow', 'OpenCV', 'Raspberry Pi', 'Python'],
+    event: 'Engineering Design Project, SRMIST',
+    image: '/AIbin.png',
+    imageFit: 'cover'
   },
   {
     id: 'raksha',
