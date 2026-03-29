@@ -36,10 +36,12 @@ export const projectsData = [
     id: 'mcq-generation',
     title: 'MCQ Generation System',
     category: 'NLP / Research',
-    date: '2021 - 2022',
-    description: 'Developed an NLP-based automated MCQ generation system using LSTM and attention mechanisms, achieving 96.7% recall. Published results at the I3CS 2021 conference.',
-    technologies: ['NLP', 'LSTM', 'Python', 'Deep Learning'],
-    event: 'National Institute of Technology, Trichy'
+    date: 'Dec 2024',
+    description: 'Designed an AI-powered system that automatically generates multiple-choice questions from provided text content using natural language processing techniques.',
+    technologies: ['NLP', 'Python', 'Transformer Models', 'PyTorch'],
+    event: 'Research Project, SRMIST',
+    image: '/MCQgeneration.png',
+    imageFit: 'cover'
   },
   {
     id: 'ai-bin',
