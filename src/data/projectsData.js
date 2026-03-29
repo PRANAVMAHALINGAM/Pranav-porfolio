@@ -25,7 +25,8 @@ export const projectsData = [
     date: 'Nov 2025',
     description: 'Built an AI-powered virtual interviewer using agentic AI concepts to simulate real interview scenarios within a 24-hour hackathon.',
     technologies: ['Agentic AI', 'LLM', 'Python Core'],
-    event: 'Best Project – Claude Builders Club Hackathon'
+    event: 'Best Project – Claude Builders Club Hackathon',
+    image: '/githired.jpg'
   },
   {
     id: 'mcq-generation',

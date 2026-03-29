@@ -5,7 +5,7 @@ import './Projects.css';
 const projects = [
   { id: 'budgetbruh', title: 'BudgetBruh (TartanHacks)', category: 'LLM / Finance App', image: '/budgetbruh.png' },
   { id: 'git-landscaper', title: 'Git-Landscaper (UMich)', category: 'Open Source / Git' },
-  { id: 'git-hired', title: 'Git-Hired (Claude Builders)', category: 'Agentic AI Interviewer' },
+  { id: 'git-hired', title: 'Git-Hired (Claude Builders)', category: 'Agentic AI Interviewer', image: '/githired.jpg' },
   { id: 'mcq-generation', title: 'MCQ Generation System', category: 'NLP / Research' },
   { id: 'ai-bin', title: 'AI Bin: Smart Garbage', category: 'CV / IoT' },
   { id: 'raksha', title: 'RAKSHA - Bike Safety', category: 'IoT / Hardware' },
