@@ -46,7 +46,7 @@ const Experience = () => {
   return (
     <section className="experience-section section">
       <div className="container">
-        <h2 className="section-title text-center">Experience &amp; Education</h2>
+        <h2 className="section-title text-center">My Experience So far</h2>
         
         <motion.div 
           className="timeline"
