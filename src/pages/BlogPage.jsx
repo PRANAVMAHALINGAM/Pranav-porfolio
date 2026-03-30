@@ -1,29 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
-import { ExternalLink, ArrowRight, Loader2 } from 'lucide-react';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { linkedinPosts } from '../data/linkedinPosts';
+import { ExternalLink, ArrowRight } from 'lucide-react';
 import './BlogPage.css';
 
 const BlogPage = () => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('id', { ascending: false }); // Show newest first based on ID
-
-      if (!error && data) {
-        setPosts(data);
-      }
-      setLoading(false);
-    };
-
-    fetchPosts();
-  }, []);
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -71,61 +52,51 @@ const BlogPage = () => {
             <p className="section-subtitle">Insights from my LinkedIn and professional journey.</p>
           </div>
           
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center" style={{ minHeight: '40vh' }}>
-              <Loader2 className="animate-spin" size={48} color="var(--color-primary)" />
-              <p className="mt-4 font-bold" style={{ marginTop: '1rem' }}>Loading blog posts...</p>
-            </div>
-          ) : (
-            <motion.div 
-              className="blog-grid"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-            >
-              <AnimatePresence mode="popLayout">
-                {posts.map((post) => (
-                  <motion.article 
-                    className="blog-card" 
-                    key={post.id}
-                    variants={itemVariants}
-                    layout
-                  >
-                    <div className="blog-card-image-wrap">
-                      <img 
-                        src={post.image} 
-                        alt={post.title} 
-                        className="blog-card-image" 
-                        onError={(e) => {
-                          e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'; // Tech fallback
-                          e.target.onerror = null;
-                        }}
-                      />
-                      {post.category && <span className="blog-card-category">{post.category}</span>}
-                    </div>
-                    
-                    <div className="blog-card-content">
-                      <div className="blog-card-date">{post.date}</div>
-                      <h3 className="blog-card-title">{post.title}</h3>
-                      <p className="blog-card-snippet">{post.snippet}</p>
-                      
-                      <div className="blog-card-footer">
-                        <a 
-                          href={post.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="blog-card-link"
-                        >
-                          Read full post <ExternalLink size={16} />
-                        </a>
-                      </div>
-                    </div>
-                  </motion.article>
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          )}
+          <motion.div 
+            className="blog-grid"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
+            {linkedinPosts.map((post) => (
+              <motion.article 
+                className="blog-card" 
+                key={post.id}
+                variants={itemVariants}
+              >
+                <div className="blog-card-image-wrap">
+                  <img 
+                    src={post.image} 
+                    alt={post.title} 
+                    className="blog-card-image" 
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800'; // Tech fallback
+                      e.target.onerror = null;
+                    }}
+                  />
+                  {post.category && <span className="blog-card-category">{post.category}</span>}
+                </div>
+                
+                <div className="blog-card-content">
+                  <div className="blog-card-date">{post.date}</div>
+                  <h3 className="blog-card-title">{post.title}</h3>
+                  <p className="blog-card-snippet">{post.snippet}</p>
+                  
+                  <div className="blog-card-footer">
+                    <a 
+                      href={post.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="blog-card-link"
+                    >
+                      Read full post <ExternalLink size={16} />
+                    </a>
+                  </div>
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
 
           {/* Social Cta */}
           <motion.div 
