@@ -8,7 +8,9 @@ import ContactPage from './pages/ContactPage';
 import ProjectDetail from './pages/ProjectDetail';
 import VolunteeringPage from './pages/VolunteeringPage';
 import AwardsPage from './pages/AwardsPage';
-import BlogPage from './pages/BlogPage';
+import AdminLogin from './pages/AdminLogin';
+import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 import { Analytics } from '@vercel/analytics/react';
 
 function App() {
@@ -25,6 +27,17 @@ function App() {
           <Route path="/awards" element={<AwardsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/volunteering" element={<VolunteeringPage />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </main>
       <Analytics />
