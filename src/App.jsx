@@ -10,6 +10,7 @@ import VolunteeringPage from './pages/VolunteeringPage';
 import AwardsPage from './pages/AwardsPage';
 import BlogPage from './pages/BlogPage';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         </Routes>
       </main>
       <Analytics />
+      <SpeedInsights />
     </Router>
   );
 }
