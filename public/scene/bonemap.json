@@ -1,0 +1,49 @@
+{
+  "_convention": "Assumes +X (Blender) = character's own left side after centering. Flip L/R downstream if your source rig used the opposite convention.",
+  "bones": {
+    "hips": "DEF-spine",
+    "chest": "DEF-spine.003",
+    "neck": "DEF-spine.004",
+    "head": "DEF-spine.006",
+    "shoulderL": "DEF-upper_arm.L",
+    "elbowL": "DEF-forearm.L",
+    "handL": "DEF-hand.L",
+    "shoulderR": "DEF-upper_arm.R",
+    "elbowR": "DEF-forearm.R",
+    "handR": "DEF-hand.R",
+    "thighL": "DEF-thigh.L",
+    "kneeL": "DEF-shin.L",
+    "footL": "DEF-foot.L",
+    "thighR": "DEF-thigh.R",
+    "kneeR": "DEF-shin.R",
+    "footR": "DEF-foot.R"
+  },
+  "world_rest_position": {
+    "hips": [0.0, 0.0, 0.943876],
+    "chest": [0.0, -0.04607, 1.36981],
+    "neck": [0.0, -0.04093, 1.549696],
+    "head": [0.0, -0.074665, 1.66473],
+    "shoulderL": [0.182503, -0.026633, 1.480919],
+    "elbowL": [0.413412, 0.031118, 1.354298],
+    "handL": [0.616193, -0.005607, 1.220668],
+    "shoulderR": [-0.182503, -0.026633, 1.480919],
+    "elbowR": [-0.413412, 0.031118, 1.354298],
+    "handR": [-0.616193, -0.005607, 1.220668],
+    "thighL": [0.091579, -0.039996, 1.001907],
+    "kneeL": [0.091579, -0.078309, 0.502149],
+    "footL": [0.091579, -0.036445, 0.079766],
+    "thighR": [-0.091579, -0.039996, 1.001907],
+    "kneeR": [-0.091579, -0.078309, 0.502149],
+    "footR": [-0.091579, -0.036445, 0.079766]
+  },
+  "segment_lengths_m": {
+    "shoulderL_to_elbowL": 0.269605,
+    "elbowL_to_handL": 0.245613,
+    "shoulderR_to_elbowR": 0.269605,
+    "elbowR_to_handR": 0.245613,
+    "thighL_to_kneeL": 0.501224,
+    "kneeL_to_footL": 0.424452,
+    "thighR_to_kneeR": 0.501224,
+    "kneeR_to_footR": 0.424452
+  }
+}
