@@ -426,11 +426,14 @@
 .profile__body:last-of-type { margin-bottom: 0; }
 .profile__actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
 
-.loadout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; perspective: 1400px; }
+/* One row: the loadout holds exactly the open-source projects. */
+.loadout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; perspective: 1400px; }
 .slot { transform-style: preserve-3d; display: flex; flex-direction: column; }
-/* Each card tips toward its own outside corner, so the grid reads as a rack. */
-.slot:nth-child(odd):hover { transform: rotateX(4deg) rotateY(-5deg) translateY(-8px); }
-.slot:nth-child(even):hover { transform: rotateX(4deg) rotateY(5deg) translateY(-8px); }
+/* Each card tips toward its own outside edge, so the row reads as a rack —
+   the middle one only lifts. */
+.slot:hover { transform: rotateX(4deg) translateY(-8px); }
+.slot:nth-child(3n + 1):hover { transform: rotateX(4deg) rotateY(-5deg) translateY(-8px); }
+.slot:nth-child(3n):hover { transform: rotateX(4deg) rotateY(5deg) translateY(-8px); }
 .slot__media--empty,
 .project-card__media.slot__media--empty {
   display: grid;
@@ -450,7 +453,7 @@
 }
 
 .slot__media {
-  height: 168px;
+  height: 150px;
   margin-bottom: 24px;
   border: 1px solid var(--line);
   background-color: var(--band);
@@ -460,8 +463,8 @@
   transition: filter 320ms ease;
 }
 .slot:hover .slot__media { filter: none; }
-.slot__name { margin: 0 0 10px; font-size: 26px; font-weight: 700; letter-spacing: -0.015em; }
-.slot__desc { margin: 0 0 22px; font-size: 15px; line-height: 1.7; color: var(--muted); text-wrap: pretty; }
+.slot__name { margin: 0 0 10px; font-size: 23px; font-weight: 700; letter-spacing: -0.015em; }
+.slot__desc { margin: 0 0 20px; font-size: 14px; line-height: 1.7; color: var(--muted); text-wrap: pretty; }
 .slot__event {
   font-family: var(--mono);
   font-size: 10px;
@@ -551,10 +554,16 @@
   .profile-grid, .comms-grid { grid-template-columns: 1fr; gap: 48px; }
   .comms-grid { align-items: start; }
   .hero-copy { width: min(340px, 40vw); }
+
+  .loadout { grid-template-columns: repeat(2, 1fr); }
+  .slot:hover,
+  .slot:nth-child(3n + 1):hover,
+  .slot:nth-child(3n):hover { transform: rotateX(4deg) translateY(-8px); }
 }
 
 @media (max-width: 860px) {
   .loadout, .stats-grid, .awards-grid { grid-template-columns: 1fr; }
+  .slot__media { height: 180px; }
   .stats-grid { gap: 40px; }
   .counters { grid-template-columns: 1fr; }
 
@@ -569,7 +578,9 @@
   .hero-title__first { font-size: 5vw; }
   .hero-title__last { font-size: 13vw; }
   .feed { top: 70px; right: 16px; left: 16px; justify-items: stretch; }
-  .slot:hover { transform: none; }
+  .slot:hover,
+  .slot:nth-child(3n + 1):hover,
+  .slot:nth-child(3n):hover { transform: none; }
 }
 
 @media (hover: none) {
@@ -578,5 +589,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .slot:hover { transform: none; }
+  .slot:hover,
+  .slot:nth-child(3n + 1):hover,
+  .slot:nth-child(3n):hover { transform: none; }
 }
