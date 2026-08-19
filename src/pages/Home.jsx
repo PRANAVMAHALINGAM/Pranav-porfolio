@@ -6,7 +6,7 @@ import OperatorScene from '../components/hud/OperatorScene';
 import useClock from '../hooks/useClock';
 import useHeroFade from '../hooks/useHeroFade';
 import { profile, sectionCopy, socials } from '../data/profileData';
-import { projectsData } from '../data/projectsData';
+import { openSourceProjects } from '../data/projectsData';
 import { awards, education, experience, volunteering } from '../data/careerData';
 import { skillGroups, stack } from '../data/skillsData';
 import '../styles/hud.css';
@@ -199,10 +199,10 @@ const Home = () => {
           title="Loadout"
           gloss={sectionCopy.loadout.plain}
           desc={sectionCopy.loadout.desc}
-          aside={`${String(projectsData.length).padStart(2, '0')} SLOTS`}
+          aside={`${String(openSourceProjects.length).padStart(2, '0')} SLOTS`}
         />
         <div className="loadout">
-          {projectsData.map((p, i) => (
+          {openSourceProjects.map((p, i) => (
             <article className="frame slot" key={p.id}>
               <div className="frame__corner frame__corner--tl" />
               <div className="frame__corner frame__corner--br" />
@@ -230,12 +230,13 @@ const Home = () => {
               </div>
               <div className="slot__links">
                 <Link to={`/projects/${p.id}`}>CASE STUDY &#8594;</Link>
-                {p.repo && (
-                  <a href={p.repo} target="_blank" rel="noreferrer" className="link-muted">SOURCE &#8599;</a>
-                )}
+                <a href={p.repo} target="_blank" rel="noreferrer" className="link-muted">SOURCE &#8599;</a>
               </div>
             </article>
           ))}
+        </div>
+        <div className="loadout__more">
+          <Link to="/projects" className="btn btn-secondary">See every project &#8594;</Link>
         </div>
       </section>
 

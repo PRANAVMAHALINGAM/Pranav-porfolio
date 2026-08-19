@@ -4,8 +4,6 @@ import InnerHero from '../components/InnerHero';
 import { linkedinPosts } from '../data/linkedinPosts';
 import { sectionCopy } from '../data/profileData';
 
-const FALLBACK = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800';
-
 const container = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -43,12 +41,7 @@ const BlogPage = () => (
         {linkedinPosts.map((post) => (
           <motion.article className="frame post" key={post.id} variants={item}>
             <div className="post__media">
-              <img
-                src={post.image}
-                alt=""
-                loading="lazy"
-                onError={(e) => { e.currentTarget.src = FALLBACK; e.currentTarget.onerror = null; }}
-              />
+              <img src={post.image} alt="" loading="lazy" />
               {post.category && <span className="post__cat">{post.category.toUpperCase()}</span>}
             </div>
             <div className="post__body">

@@ -81,3 +81,12 @@ export const projectsData = [
     imageFit: 'cover'
   }
 ];
+
+/* The home loadout is a highlight reel: only work with public source on it. */
+export const openSourceProjects = projectsData.filter((p) => p.repo);
+
+/* The index shows everything, but leads with the projects you can go read. */
+export const projectsByRepoFirst = [
+  ...projectsData.filter((p) => p.repo),
+  ...projectsData.filter((p) => !p.repo)
+];

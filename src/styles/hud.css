@@ -479,6 +479,8 @@
   letter-spacing: 0.14em;
 }
 
+.loadout__more { margin-top: 32px; }
+
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 56px 80px; }
 .stats__col { display: grid; gap: 22px; align-content: start; }
 .stats__label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; color: var(--dim); }

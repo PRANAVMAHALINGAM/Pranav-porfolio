@@ -33,6 +33,7 @@ Loadout (projects), Stat Sheet, Commendations (awards), Field Service
 ## Layout
 
 ```
+public/blog/            post images, pulled once from LinkedIn (see below)
 public/scene/
   operator-scene.js     WebGL custom element (vendored — excluded from lint)
   bonemap.json          proxy-rig → Rigify bone mapping
@@ -59,7 +60,11 @@ src/
 Editing content means editing `src/data/` — the components read from it.
 `sectionCopy` in `profileData.js` holds the plain-English gloss for every HUD
 callsign ("Commendations / Awards"), used by both the home sections and the
-matching routes. A project only renders a SOURCE link when it has a `repo`, and
+matching routes.
+
+Projects are filtered by whether they have a public repo: the home loadout
+shows only `openSourceProjects`, while `/projects` shows everything via
+`projectsByRepoFirst`, which leads with the ones you can go read. A project
 falls back to a hatched placeholder when it has no `image`.
 
 ## Missing 3D assets
@@ -76,6 +81,17 @@ in place.
 
 `vercel.json` deliberately excludes `/scene/` from the SPA rewrite so a missing
 asset 404s instead of being served `index.html`.
+
+## Blog images
+
+LinkedIn's media URLs are signed and expire, so hot-linking them left every
+tile blank. The images in `public/blog/` were fetched once — LinkedIn serves
+`og:image` with a fresh signature to crawler user agents — and are now served
+locally, so the tiles no longer depend on a signature.
+
+Post dates come from each post's own id (LinkedIn encodes the creation
+timestamp in the high bits), which corrected a set of dates that were a year
+behind. To add a post: append the URL, re-run the fetch, and drop the image in.
 
 ## Theming
 

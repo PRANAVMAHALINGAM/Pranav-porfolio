@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import InnerHero from '../components/InnerHero';
-import { projectsData } from '../data/projectsData';
+import { projectsByRepoFirst, projectsData } from '../data/projectsData';
 import { sectionCopy } from '../data/profileData';
 
 const container = {
@@ -38,7 +38,7 @@ const ProjectsPage = () => (
         whileInView="visible"
         viewport={{ once: true, margin: '-50px' }}
       >
-        {projectsData.map((p, i) => (
+        {projectsByRepoFirst.map((p, i) => (
           <motion.article className="frame project-card" key={p.id} variants={item}>
             <div className="frame__corner frame__corner--tl" />
             <div className="frame__corner frame__corner--br" />
