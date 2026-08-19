@@ -31,7 +31,7 @@ export const projectsData = [
     description: 'A privacy-first GitHub App that pairs AI code review with automated branch hygiene. It runs entirely on your own GitHub Actions runners through a dispatcher-worker relay, so source and secrets never leave your environment.',
     technologies: ['GitHub API', 'Node.js', 'Groq', 'Vercel'],
     event: 'Open Source Innovation, University of Michigan',
-    image: '/git-landscaper.png',
+    image: '/repo-ranger.webp',
     imageFit: 'contain',
     repo: 'https://github.com/PRANAVMAHALINGAM/repo-ranger'
   },
