@@ -1,8 +1,25 @@
-/* <operator-scene> — playable third-person operator in a dark hangar.
-   A programmatically modelled, jointed character (no photo sampling): WASD to move,
-   mouse to aim, click to fire, R to reload. Assembles on 'operator:deploy'.
-   Broadcasts 'operator:hud' {ammo, mag, reloading, shots, hit}.
-   Attributes: accent, motion (calm|standard|aggressive) */
+/* <operator-scene> — the posed operator in a dark hangar.
+   WASD to move, mouse to aim, click to fire, R to reload. Assembles on
+   'operator:deploy'. Broadcasts 'operator:hud' {ammo, mag, reloading, shots, hit}.
+   Attributes: accent, motion (calm|standard|aggressive), look (textured|wireframe)
+
+   The pose is the art, not something this file computes. The previous version
+   rebuilt a proxy skeleton, solved IK to put the hands on a weapon, and
+   retargeted the result onto the real bones every frame. That only works for a
+   rig exported in T-pose, and even then the stance took constant tuning.
+
+   This version loads the operator exactly as posed in Blender — rifle
+   shouldered, hands already on the grips, weapon parented to the hand — and
+   never rewrites a bone. Everything it animates is a small ADDITIVE offset on
+   top of that pose:
+
+     aim      yaw the root, add a little chest yaw and pitch
+     walk     bob the root, swing thighs and knees a few degrees
+     breathe  a slow sine on the chest
+     recoil   a kick on the weapon node, in the weapon's own axes
+
+   None of that can collapse the mesh, because the baked pose is always the rest
+   the offsets are measured from. */
 (function () {
   const SRC = 'https://unpkg.com/three@0.137.5/build/three.min.js';
   const GLTF = 'https://unpkg.com/three@0.137.5/examples/js/loaders/GLTFLoader.js';
@@ -23,612 +40,169 @@
     });
     return pending;
   }
+
   const SPEED = { calm: 0.6, standard: 1, aggressive: 1.6 };
 
-  /* Binds the rigged GLB to the procedural control rig. The proxy skeleton stays
-     the thing the scene animates (world-aligned axes, its own IK); each frame the
-     proxy's world rotations are retargeted onto the real bones, so the Rigify
-     rest pose and bone rolls never have to be reasoned about. */
-  const BONE_KEYS = ['hips', 'chest', 'neck', 'head', 'shoulderL', 'elbowL', 'handL',
-    'shoulderR', 'elbowR', 'handR', 'thighL', 'kneeL', 'footL', 'thighR', 'kneeR', 'footR'];
-  const FALLBACK = {
-    hips: 'DEF-spine', chest: 'DEF-spine003', neck: 'DEF-spine004', head: 'DEF-spine006',
-    shoulderL: 'DEF-upper_armL', elbowL: 'DEF-forearmL', handL: 'DEF-handL',
-    shoulderR: 'DEF-upper_armR', elbowR: 'DEF-forearmR', handR: 'DEF-handR',
-    thighL: 'DEF-thighL', kneeL: 'DEF-shinL', footL: 'DEF-footL',
-    thighR: 'DEF-thighR', kneeR: 'DEF-shinR', footR: 'DEF-footR'
-  };
-  /* intermediate spine bones share the chest's bend so the torso curves.
-     Rigify defaults; a bonemap may supply its own `spread` for another rig. */
-  const SPREAD = [['DEF-spine001', 'chest', 0.3], ['DEF-spine002', 'chest', 0.45], ['DEF-spine005', 'head', 0.4]];
-  /* GLTFLoader sanitizes node names, so ".003" arrives as "003" */
+  /* GLTFLoader sanitizes node names, so "mixamorig:Hips" arrives as
+     "mixamorigHips" and "DEF-spine.003" as "DEF-spine003". */
   const bkey = (s) => String(s).replace(/\s/g, '_').replace(/[.:/[\]]/g, '');
 
-  function attachRigged(T, rig, url, mapPromise, done) {
-    const wantMap = Promise.resolve(mapPromise);
-    new T.GLTFLoader().load(url, (gltf) => {
-      wantMap.then((bm) => {
-        const names = (bm && bm.bones) || {};
+  /* Only these bones are ever touched; the rest keep the exported pose. Used
+     when the bonemap is missing a role — covers both rigs this project has had. */
+  const GUESSES = {
+    hips: ['mixamorig:Hips', 'DEF-spine'],
+    chest: ['mixamorig:Spine2', 'DEF-spine.003'],
+    neck: ['mixamorig:Neck', 'DEF-spine.004'],
+    head: ['mixamorig:Head', 'DEF-spine.006'],
+    thighL: ['mixamorig:LeftUpLeg', 'DEF-thigh.L'],
+    kneeL: ['mixamorig:LeftLeg', 'DEF-shin.L'],
+    thighR: ['mixamorig:RightUpLeg', 'DEF-thigh.R'],
+    kneeR: ['mixamorig:RightLeg', 'DEF-shin.R']
+  };
+
+  /* Loads the operator, stands him on the floor, and wires up the handful of
+     bones the tick may nudge. Calls done(info) when usable, done(null) on
+     failure — the hangar renders either way. */
+  function loadOperator(T, rig, url, mapPromise, done) {
+    Promise.resolve(mapPromise).catch(() => null).then((bm) => {
+      new T.GLTFLoader().load(url, (gltf) => {
+        const model = gltf.scene;
         const byName = {};
         let skinned = null;
-        gltf.scene.traverse((o) => {
+        model.traverse((o) => {
           if (o.name) { byName[o.name] = o; byName[bkey(o.name)] = o; }
           if (o.isSkinnedMesh && !skinned) skinned = o;
+          if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; }
         });
-        if (!skinned) return;
 
-        const real = {};
-        BONE_KEYS.forEach((k) => {
-          real[k] = (names[k] && byName[bkey(names[k])]) || byName[FALLBACK[k]] || null;
-        });
-        if (!real.hips || !real.shoulderL || !real.handR) return;
+        const names = (bm && bm.bones) || {};
+        const find = (role) => {
+          if (names[role] && byName[bkey(names[role])]) return byName[bkey(names[role])];
+          for (const g of (GUESSES[role] || [])) if (byName[bkey(g)]) return byName[bkey(g)];
+          return null;
+        };
 
-        rig.root.add(gltf.scene);
-        gltf.scene.updateMatrixWorld(true);
+        rig.root.add(model);
+        model.updateMatrixWorld(true);
 
-        /* The model may ship its own weapon already parented to a hand. Keep it
-           and retire the block-out, otherwise the operator carries two rifles. */
-        const wpn = bm && bm.weapon;
-        if (wpn && wpn.node) {
-          let own = null, ownMuzzle = null;
-          gltf.scene.traverse((o) => {
-            if (o.name === wpn.node) own = o;
-            if (wpn.muzzle && o.name === wpn.muzzle) ownMuzzle = o;
-          });
-          if (own) {
-            rig.rifle.traverse((o) => { if (o.isMesh) { o.visible = false; o.userData.keep = false; } });
-            rig.ownWeapon = own;
-            if (ownMuzzle) rig.muzzle = ownMuzzle;
+        /* Stand him on the floor and centre him over the root, so root.position
+           is the character's own position and the marker ring lands under him. */
+        const box = new T.Box3().setFromObject(model);
+        const mid = box.getCenter(new T.Vector3());
+        model.position.x -= mid.x;
+        model.position.z -= mid.z;
+        model.position.y -= box.min.y;
+        model.updateMatrixWorld(true);
+
+        /* One additive channel per driven bone: the tick writes euler offsets to
+           a detached dummy, sync() composes them onto the bone's posed rest. */
+        const channels = [];
+        const bind = (role, dummy) => {
+          const bone = find(role);
+          if (bone) channels.push({ bone: bone, dummy: dummy, rest: bone.quaternion.clone() });
+        };
+        bind('hips', rig.hips);
+        bind('chest', rig.chest);
+        bind('neck', rig.neck);
+        bind('head', rig.head);
+        bind('thighL', rig.legs.L.hip);
+        bind('kneeL', rig.legs.L.knee);
+        bind('thighR', rig.legs.R.hip);
+        bind('kneeR', rig.legs.R.knee);
+
+        const q = new T.Quaternion();
+        rig.sync = () => {
+          for (let i = 0; i < channels.length; i++) {
+            const c = channels[i];
+            c.bone.quaternion.copy(c.rest).multiply(q.setFromEuler(c.dummy.rotation));
           }
+          /* the walk bob rides the whole body rather than the hips bone, so the
+             legs keep their posed relationship to the feet */
+          rig.root.position.y = rig.hips.position.y - rig.hipsRestY;
+        };
+
+        /* The weapon is already parented to a hand in the export. Give it a
+           muzzle node whose -Z runs down the barrel, which is what fire() reads. */
+        const wp = (bm && bm.weapon) || {};
+        const weapon = (wp.node && byName[bkey(wp.node)]) || byName.CZ_Bren || null;
+        if (weapon) {
+          const tip = (wp.muzzle && byName[bkey(wp.muzzle)]) || byName.MUZZLE || null;
+          const wbox = new T.Box3().setFromObject(weapon);
+          const wmid = wbox.getCenter(new T.Vector3());
+          const tipWorld = tip ? tip.getWorldPosition(new T.Vector3())
+            : wmid.clone().addScaledVector(new T.Vector3(0, 0, 1), wbox.getSize(new T.Vector3()).length() * 0.4);
+          const dirWorld = tipWorld.clone().sub(wmid).normalize();
+          const invWQ = weapon.getWorldQuaternion(new T.Quaternion()).invert();
+          const dirLocal = dirWorld.clone().applyQuaternion(invWQ).normalize();
+
+          const muzzle = new T.Object3D();
+          weapon.add(muzzle);
+          muzzle.position.copy(weapon.worldToLocal(tipWorld.clone()));
+          muzzle.quaternion.setFromUnitVectors(new T.Vector3(0, 0, -1), dirLocal);
+          rig.muzzle.parent && rig.muzzle.parent.remove(rig.muzzle);
+          rig.muzzle = muzzle;
+
+          rig.rifle = weapon;
+          rig.rifleBase = { pos: weapon.position.clone(), quat: weapon.quaternion.clone() };
+          rig.recoilAxis = dirLocal.clone().applyQuaternion(weapon.quaternion).normalize();
         }
-        const wp = (o) => o.getWorldPosition(new T.Vector3());
-        const P = {};
-        BONE_KEYS.forEach((k) => { if (real[k]) P[k] = wp(real[k]); });
 
-        /* the proxy is rebuilt on the real rig's measurements, so IK solved on the
-           proxy lands the real hands exactly on the weapon */
-        /* the proxy's 'R' limb sits on -x, so it binds to whichever real bone is on -x
-           — that keeps the trigger hand on the character's actual right.
-           A bonemap can set sides:"direct" to opt out: the guess reads x positions
-           from the loaded pose, which is wrong for a rig exported already posed, or
-           for one whose weapon is parented to a specific hand. */
-        const direct = bm && bm.sides === 'direct';
-        const armSide = direct ? { R: 'R', L: 'L' }
-          : { R: P.shoulderL.x < 0 ? 'L' : 'R', L: P.shoulderL.x < 0 ? 'R' : 'L' };
-        const legSide = direct ? { R: 'R', L: 'L' }
-          : { R: P.thighL.x < 0 ? 'L' : 'R', L: P.thighL.x < 0 ? 'R' : 'L' };
-
-        rig.hips.position.copy(P.hips);
-        rig.hipsRestY = P.hips.y;
-        rig.chest.position.copy(P.chest).sub(P.hips);
-        rig.neck.position.copy(P.neck).sub(P.chest);
-        rig.head.position.copy(P.head).sub(P.neck);
-        rig.armL1 = P.shoulderL.distanceTo(P.elbowL);
-        rig.armL2 = P.elbowL.distanceTo(P.handL);
-        ['L', 'R'].forEach((pk) => {
-          const rs = armSide[pk];
-          const arm = rig.arms[pk];
-          arm.sh.position.copy(P['shoulder' + rs]).sub(P.chest);
-          arm.sh.quaternion.identity();
-          arm.elbow.position.set(0, -rig.armL1, 0);
-          arm.elbow.rotation.set(0, 0, 0);
-          arm.hand.position.set(0, -rig.armL2, 0);
-          const leg = rig.legs[pk], ls = legSide[pk];
-          leg.hip.position.copy(P['thigh' + ls]).sub(P.hips);
-          leg.hip.rotation.set(0, 0, 0);
-          leg.knee.position.copy(P['knee' + ls]).sub(P['thigh' + ls]);
-          leg.knee.rotation.set(0, 0, 0);
-        });
-        rig.root.position.set(0, 0, 0);
-        rig.root.rotation.set(0, 0, 0);
-        rig.chest.rotation.set(0, 0, 0);
-        rig.neck.rotation.set(0, 0, 0);
-        rig.head.rotation.set(0, 0, 0);
-        rig.root.updateMatrixWorld(true);
-
-        /* Retarget by world rotation delta. That is only valid when both skeletons
-           share a reference pose, so the control rig's limbs are first posed into THIS
-           rig's rest pose (a T-pose) and that is what gets captured as the reference —
-           after which every rotation the IK produces transfers exactly, roll included. */
-        const DOWN = new T.Vector3(0, -1, 0);
-        const tmpQ = new T.Quaternion(), tmpV = new T.Vector3();
-        const alignTo = (bone, parentObj, from, to) => {
-          parentObj.getWorldQuaternion(tmpQ).invert();
-          tmpV.copy(to).sub(from).normalize().applyQuaternion(tmpQ);
-          bone.quaternion.setFromUnitVectors(DOWN, tmpV);
-          bone.updateWorldMatrix(true, true);
-        };
-        ['L', 'R'].forEach((pk) => {
-          const rs = armSide[pk], arm = rig.arms[pk];
-          alignTo(arm.sh, rig.chest, P['shoulder' + rs], P['elbow' + rs]);
-          alignTo(arm.elbow, arm.sh, P['elbow' + rs], P['hand' + rs]);
-          const ls = legSide[pk], leg = rig.legs[pk];
-          alignTo(leg.hip, rig.hips, P['thigh' + ls], P['knee' + ls]);
-          alignTo(leg.knee, leg.hip, P['knee' + ls], P['foot' + ls]);
-        });
-        rig.root.updateMatrixWorld(true);
-
-        const wq = (o) => o.getWorldQuaternion(new T.Quaternion());
-
-        /* Builds a bone orientation from a direction plus a pole, so roll is never left
-           to a minimal-arc guess — an unconstrained roll twists the skinned arm inside out. */
-        const fqX = new T.Vector3(), fqY = new T.Vector3(), fqZ = new T.Vector3(), fqM = new T.Matrix4();
-        const frameQuat = (u, pole, out) => {
-          fqY.copy(u).normalize().multiplyScalar(-1);
-          fqZ.copy(pole).addScaledVector(fqY, -pole.dot(fqY));
-          if (fqZ.lengthSq() < 1e-8) fqZ.set(fqY.z, fqY.x, fqY.y);
-          fqZ.normalize();
-          fqX.crossVectors(fqY, fqZ).normalize();
-          fqZ.crossVectors(fqX, fqY);
-          fqM.makeBasis(fqX, fqY, fqZ);
-          return out.setFromRotationMatrix(fqM);
-        };
-
-        const proxyOf = (k) => {
-          if (k === 'hips' || k === 'chest' || k === 'neck' || k === 'head') return rig[k];
-          const m = k.match(/^(shoulder|elbow|thigh|knee)([LR])$/);
-          if (!m) return null;
-          if (m[1] === 'shoulder' || m[1] === 'elbow') {
-            const pk = m[2] === armSide.L ? 'L' : 'R';
-            return m[1] === 'shoulder' ? rig.arms[pk].sh : rig.arms[pk].elbow;
-          }
-          const lk = m[2] === legSide.L ? 'L' : 'R';
-          return m[1] === 'thigh' ? rig.legs[lk].hip : rig.legs[lk].knee;
-        };
-
-        const steps = [];
-        const push = (bone, proxy, w) => {
-          if (!bone || !proxy) return;
-          steps.push({ bone: bone, proxy: proxy, w: w, pRest: wq(proxy), rRest: wq(bone) });
-        };
-        ['hips', 'chest', 'neck', 'head'].forEach((k) => push(real[k], rig[k], 1));
-        ((bm && bm.spread) || SPREAD).forEach(([bn, pk, w]) => {
-          const b = byName[bkey(bn)];
-          if (b && b.isBone) push(b, rig[pk], w);
-        });
-        /* legs retarget cleanly — both rigs rest with the legs straight down */
-        ['thighL', 'kneeL', 'thighR', 'kneeR'].forEach((k) => push(real[k], proxyOf(k), 1));
-        /* the clavicle is deliberately left at rest: rotating it moves the upper arm's
-           origin, which slides the hands off the weapon by several centimetres */
-        /* hands and feet keep their rest rotation, so wrists and ankles stay straight */
-
-        /* ARMS — posed ONCE, then never touched again.
-           Every previous attempt solved the hands onto the weapon every frame, and any
-           orientation error in that solve shows up as a twisted, shrink-wrapped arm. So the
-           dependency is inverted: the arms are posed once into a rifle stance and the WEAPON
-           is socketed to the trigger hand. The arm bones then hold constant local rotations
-           for the life of the page — geometrically incapable of morphing — and aim comes
-           from the spine and head, which the retarget above already drives. */
-        const armMeta = {};
-        ['R', 'L'].forEach((pk) => {
-          const rs = armSide[pk];
-          const sh = real['shoulder' + rs], el = real['elbow' + rs], hb = real['hand' + rs];
-          if (!sh || !el) return;
-          /* each bone's rest direction toward its child, held in the bone's own local frame
-             so it stays valid under any parent rotation */
-          const localDir = (bone, from, to) => {
-            const v = to.clone().sub(from);
-            if (v.lengthSq() < 1e-10) v.set(0, -1, 0);
-            return v.normalize().applyQuaternion(wq(bone).invert());
-          };
-          const m = {
-            sh: sh, el: el, hand: hb,
-            l1: P['shoulder' + rs].distanceTo(P['elbow' + rs]),
-            l2: P['elbow' + rs].distanceTo(P['hand' + rs]),
-            shRest: sh.quaternion.clone(), shDir: localDir(sh, P['shoulder' + rs], P['elbow' + rs]),
-            elRest: el.quaternion.clone(), elDir: localDir(el, P['elbow' + rs], P['hand' + rs])
-          };
-          if (hb) {
-            const kid = (hb.children || []).filter((c) => c.isBone)[0];
-            const tip = new T.Vector3();
-            if (kid) kid.getWorldPosition(tip);
-            if (!kid || tip.distanceToSquared(P['hand' + rs]) < 1e-8) {
-              tip.copy(P['hand' + rs]).add(P['hand' + rs].clone().sub(P['elbow' + rs]).normalize().multiplyScalar(0.1));
-            }
-            m.handRest = hb.quaternion.clone();
-            m.handDir = localDir(hb, P['hand' + rs], tip);
-          }
-          armMeta[pk] = m;
-        });
-
-        const qA = new T.Quaternion(), qB = new T.Quaternion(), qC = new T.Quaternion(), qI = new T.Quaternion();
-        const vSh = new T.Vector3(), vV = new T.Vector3(), vE1 = new T.Vector3(), vE2 = new T.Vector3();
-        const vU = new T.Vector3(), vEl = new T.Vector3(), vPole = new T.Vector3(), qW = new T.Quaternion();
-        const vHD = new T.Vector3(), vB = new T.Vector3(), qRifle = new T.Quaternion();
-        const MAX_WRIST = 0.8;
-        const setWorldQuat = (bone, want) => {
-          bone.parent.getWorldQuaternion(qC).invert();
-          bone.quaternion.copy(qC.multiply(want));
-          bone.updateWorldMatrix(false, false);
-        };
-        /* Rotates a bone from its rest orientation by the shortest arc that takes its own
-           rest direction onto aimDir — no roll is ever introduced. maxArc (radians, 0 = off)
-           caps how far the bone may swing, which is what keeps the wrist inside its range. */
-        const qP = new T.Quaternion(), qArc = new T.Quaternion(), vRest = new T.Vector3();
-        const aimBone = (bone, restLocal, dirLocal, aimDir, maxArc) => {
-          bone.parent.getWorldQuaternion(qP);
-          qA.copy(qP).multiply(restLocal);
-          vRest.copy(dirLocal).applyQuaternion(qA).normalize();
-          vB.copy(aimDir).normalize();
-          const dot = Math.max(-1, Math.min(1, vRest.dot(vB)));
-          if (dot > 0.999999) { bone.quaternion.copy(restLocal); bone.updateWorldMatrix(false, false); return; }
-          qArc.setFromUnitVectors(vRest, vB);
-          const ang = Math.acos(dot);
-          /* scaling the arc toward identity swings along the same great circle, so a capped
-             joint stops short of the target instead of snapping to a different plane */
-          if (maxArc > 0 && ang > maxArc) qArc.slerpQuaternions(qI, qArc, maxArc / ang);
-          setWorldQuat(bone, qArc.multiply(qA));
-        };
-        rig.sync = function () {
-          real.hips.position.y = P.hips.y + (rig.hips.position.y - rig.hipsRestY);
-          for (let i = 0; i < steps.length; i++) {
-            const s = steps[i];
-            s.proxy.getWorldQuaternion(qA);
-            qA.multiply(qB.copy(s.pRest).invert());
-            if (s.w !== 1) qA.slerpQuaternions(qI, qA, s.w);
-            qA.multiply(s.rRest);
-            setWorldQuat(s.bone, qA);
-          }
-          /* nothing to do for the arms — they are a fixed pose riding the chest */
-        };
-
-        /* STANCE — both hands are placed explicitly, in CHEST space, measured from the chest
-           bone: -X is the character's right, +Z is forward. Each arm gets ONE two-bone solve
-           with an authored elbow pole, the weapon is then fitted between the two hands, and
-           nothing is solved again for the life of the page. Targets are chosen to sit inside
-           each arm's reach (0.515 m), so no arm is ever driven to full extension. */
-        /* Shouldered stance, in chest space (+y up, +z forward). Measured against
-           this rig: shoulders sit at (+-0.183, 0.112, -0.016) and each arm reaches
-           0.453 before the solver clamps it.
-
-           `R.at` is the trigger hand, just below and in front of the right
-           shoulder, so the butt lands in the pocket rather than out at the belly.
-           `L.at` only has to set the barrel line — the support hand is re-solved
-           onto the real foregrip straight afterwards — so it sits one grip-spacing
-           (0.282) further along a barrel raked 38 degrees across the body. Raking
-           it is what keeps the support hand inside arm's reach; aimYawOffset yaws
-           the whole body to put the muzzle back on the cursor. */
-        const STANCE = {
-          R: { at: [-0.085, 0.030, 0.165], pole: [-0.45, -1, -0.20] },
-          L: { at: [0.090, 0.034, 0.386], pole: [0.25, -1, 0.05] }
-        };
-        (function poseArms() {
-          const chestQ = wq(real.chest);
-          const chestPos = real.chest.getWorldPosition(new T.Vector3());
-          const inChest = (a) => new T.Vector3(a[0], a[1], a[2]).applyQuaternion(chestQ);
-          const atChest = (a) => chestPos.clone().add(inChest(a));
-          const R = armMeta.R, L = armMeta.L;
-          if (!R || !R.hand || !L || !L.hand) return;
-
-          /* one analytic two-bone solve: the pole fixes the bend plane, so the elbow lands
-             where it was authored instead of wherever the math happens to swing it */
-          const MAX_EXT = 0.88;
-          const solveTo = (m, target, pole) => {
-            const sp = m.sh.getWorldPosition(new T.Vector3());
-            const v = target.clone().sub(sp);
-            /* An arm at full stretch reads as a locked, jutting limb no matter how the rest
-               of the pose is tuned, so the target is pulled toward the shoulder before it can
-               ever get there — a bent elbow is non-negotiable. */
-            const span = (m.l1 + m.l2) * MAX_EXT;
-            if (v.length() > span) {
-              v.setLength(span);
-              target = sp.clone().add(v);
-            }
-            const d = v.length();
-            const e1 = v.clone().normalize();
-            const e2 = pole.clone();
-            e2.addScaledVector(e1, -e2.dot(e1));
-            if (e2.lengthSq() < 1e-8) e2.set(0, -1, 0);
-            e2.normalize();
-            const cosT = Math.max(-1, Math.min(1, (d * d - m.l1 * m.l1 - m.l2 * m.l2) / (2 * m.l1 * m.l2)));
-            const al = Math.atan2(m.l2 * Math.sin(Math.acos(cosT)), m.l1 + m.l2 * cosT);
-            const u = e1.clone().multiplyScalar(Math.cos(al)).addScaledVector(e2, Math.sin(al));
-            aimBone(m.sh, m.shRest, m.shDir, u, 0);
-            const u2 = target.clone().sub(sp.addScaledVector(u, m.l1));
-            if (u2.lengthSq() > 1e-8) aimBone(m.el, m.elRest, m.elDir, u2, 0);
-          };
-          solveTo(R, atChest(STANCE.R.at), inChest(STANCE.R.pole).normalize());
-          solveTo(L, atChest(STANCE.L.at), inChest(STANCE.L.pole).normalize());
-
-          const handR = R.hand.getWorldPosition(new T.Vector3());
-          const handL = L.hand.getWorldPosition(new T.Vector3());
-
-          /* weapon: barrel down the hand-to-hand line, rolled upright against the chest */
-          const zAx = handL.clone().sub(handR).normalize();
-          const yAx = inChest([0, 1, 0]).normalize();
-          yAx.addScaledVector(zAx, -yAx.dot(zAx));
-          if (yAx.lengthSq() < 1e-8) yAx.set(0, 1, 0);
-          yAx.normalize();
-          const xAx = new T.Vector3().crossVectors(yAx, zAx).normalize();
-          yAx.crossVectors(zAx, xAx);
-          const wQuat = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(xAx, yAx, zAx));
-          const wPos = handR.clone().sub(new T.Vector3(GRIP_R.x, GRIP_R.y, GRIP_R.z).applyQuaternion(wQuat));
-
-          const handWorld = R.hand.matrixWorld.clone();
-          if (rig.rifle.parent) rig.rifle.parent.remove(rig.rifle);
-          R.hand.add(rig.rifle);
-          handWorld.invert()
-            .multiply(new T.Matrix4().compose(wPos, wQuat, new T.Vector3(1, 1, 1)))
-            .decompose(rig.rifle.position, rig.rifle.quaternion, rig.rifle.scale);
-          rig.rifle.updateWorldMatrix(false, true);
-          rig.rifleBase = { pos: rig.rifle.position.clone(), quat: rig.rifle.quaternion.clone() };
-          rig.recoilAxis = new T.Vector3(0, 0, 1).applyQuaternion(rig.rifleBase.quat);
-
-          /* The stance is bladed, so the barrel sits off the chest's own forward. Record that
-             angle: the aim then yaws the body by (aim - offset), which points the MUZZLE at the
-             cursor instead of the sternum. */
-          const fwd = inChest([0, 0, 1]).normalize();
-          rig.aimYawOffset = Math.atan2(zAx.x, zAx.z) - Math.atan2(fwd.x, fwd.z);
-
-          /* The weapon is now rigid relative to the trigger hand, so the foregrip is a fixed
-             point in space. One more solve closes the few millimetres the first pass left. */
-          solveTo(L, new T.Vector3(GRIP_L.x, GRIP_L.y, GRIP_L.z).applyMatrix4(rig.rifle.matrixWorld),
-            inChest(STANCE.L.pole).normalize());
-
-          /* wrists: fingers down each grip, read from the weapon's own axes */
-          const rifleQ = rig.rifle.getWorldQuaternion(new T.Quaternion());
-          const wristTo = (m, g) => aimBone(m.hand, m.handRest, m.handDir,
-            new T.Vector3(g.dir.x, g.dir.y, g.dir.z).applyQuaternion(rifleQ).normalize(), MAX_WRIST);
-          wristTo(R, HAND_R);
-          wristTo(L, HAND_L);
-        })();
-
-                const mat = skinned.material;
-        mat.envMapIntensity = 0.5;
-        if (mat.map) mat.map.encoding = T.sRGBEncoding;
-        mat.transparent = true;
-        mat.opacity = 0;
-        skinned.castShadow = true;
-        skinned.frustumCulled = false;
-
-        const wireMat = new T.MeshBasicMaterial({
-          name: 'operatorWire', color: 0xe9e7e2, wireframe: true,
-          transparent: true, opacity: 0, fog: true, depthWrite: false
-        });
-        const wire = new T.SkinnedMesh(skinned.geometry, wireMat);
-        wire.name = 'operator-wire';
-        wire.frustumCulled = false;
-        skinned.parent.add(wire);
-        wire.bind(skinned.skeleton, skinned.bindMatrix);
-        wire.visible = false;
-
-        rig.root.traverse((o) => { if (o.isMesh && !o.isSkinnedMesh) o.visible = o.userData.keep === true; });
-        /* keep === false marks the block-out weapon the real mesh replaced — showing it
-           again puts a grey slab through the hands */
-        rig.rifle.traverse((o) => {
+        /* Collect every material once, so the fade-in, the accent swap and the
+           wireframe toggle all have something to hold. */
+        const mats = {};
+        let n = 0;
+        model.traverse((o) => {
           if (!o.isMesh) return;
-          if (o.userData.keep === false) { o.visible = false; return; }
-          o.visible = true;
-          o.userData.keep = true;
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
+            if (!m) return;
+            const k = m.name || ('mat' + (n++));
+            if (mats[k]) return;
+            m.transparent = true;
+            m.opacity = 0;
+            if (m.map) m.map.encoding = T.sRGBEncoding;
+            if ('envMapIntensity' in m) m.envMapIntensity = 0.5;
+            mats[k] = m;
+          });
         });
 
-        done(skinned, mat, wire, wireMat);
-      });
+        /* The stance is bladed, so the barrel does not run down the body's own
+           forward. Record that angle once: the tick yaws by (aim - offset), which
+           points the MUZZLE at the cursor rather than the sternum. */
+        rig.root.updateMatrixWorld(true);
+        if (rig.muzzle.parent) {
+          const d = new T.Vector3(0, 0, -1)
+            .applyQuaternion(rig.muzzle.getWorldQuaternion(new T.Quaternion()));
+          rig.aimYawOffset = Math.atan2(d.x, d.z);
+        }
+
+        rig.ready = true;
+        done({ mats: mats, skinned: skinned, weapon: weapon });
+      }, undefined, () => done(null));
     });
   }
-
-  /* Swaps the block-out weapon for the real CZ Bren mesh. Parts arrive as 12
-     separate untextured objects, so materials are assigned by their source names. */
-  const WEAPON_LEN = 0.9;               /* real overall length, metres */
-  const WEAPON_SRC_LEN = 4.627;         /* the model's own length along +Z */
-  const WEAPON_MUZZLE_Z = 2.298;        /* source-space tip */
-  function loadWeapon(T, rig, url, accent, done) {
-    /* values sit a step above the plate carrier so the weapon reads as a silhouette
-       against the dark hangar; metalness stays low since the scene has no env map */
-    const dark = new T.MeshStandardMaterial({ name: 'wpnPolymer', color: 0x14161a, roughness: 0.74, metalness: 0.1 });
-    const metal = new T.MeshStandardMaterial({ name: 'wpnMetal', color: 0x1c2025, roughness: 0.62, metalness: 0.2 });
-    const steel = new T.MeshStandardMaterial({ name: 'wpnSteel', color: 0x272c32, roughness: 0.5, metalness: 0.32 });
-    const lens = new T.MeshStandardMaterial({
-      name: 'wpnLens', color: accent, emissive: accent, emissiveIntensity: 1.8, roughness: 0.25, metalness: 0
-    });
-    const pick = (n) => {
-      const k = String(n).toLowerCase();
-      if (k.indexOf('glass') === 0) return lens;
-      if (k.indexOf('grip') === 0 || k.indexOf('stock') === 0 || k.indexOf('mag') === 0) return dark;
-      if (k.indexOf('ironsight') === 0 || k.indexOf('bolt') === 0) return steel;
-      return metal;
-    };
-    new T.GLTFLoader().load(url, (gltf) => {
-      const s = WEAPON_LEN / WEAPON_SRC_LEN;
-      gltf.scene.scale.setScalar(s);
-      gltf.scene.traverse((o) => {
-        if (!o.isMesh) return;
-        o.material = pick(o.material && o.material.name);
-        o.castShadow = true;
-        o.userData.keep = true;
-      });
-      /* the block-out stays as the invisible reference the IK grips were tuned on */
-      rig.rifle.traverse((o) => { if (o.isMesh) { o.visible = false; o.userData.keep = false; } });
-      rig.rifle.add(gltf.scene);
-      rig.muzzle.position.set(0, 0, WEAPON_MUZZLE_Z * s);
-      done([dark, metal, steel, lens]);
-    }, undefined, () => {
-      /* no model: the block-out weapon stays visible */
-      done([]);
-    });
-  }
-
-  function buildOperator(T, accent) {
-    const M = {
-      gear: new T.MeshStandardMaterial({ name: 'gear', color: 0x1c1c1f, roughness: 0.66, metalness: 0.08 }),
-      pad: new T.MeshStandardMaterial({ name: 'pad', color: 0x26262a, roughness: 0.5, metalness: 0.12 }),
-      steel: new T.MeshStandardMaterial({ name: 'steel', color: 0x24242a, roughness: 0.56, metalness: 0.5 }),
-      olive: new T.MeshStandardMaterial({ name: 'olive', color: 0x424536, roughness: 0.7, metalness: 0.05 }),
-      skin: new T.MeshStandardMaterial({ name: 'skin', color: 0x8d5e3f, roughness: 0.72, metalness: 0.02 }),
-      lens: new T.MeshStandardMaterial({ name: 'lens', color: 0x101014, roughness: 0.12, metalness: 0.9 }),
-      patch: new T.MeshStandardMaterial({ name: 'patch', color: 0xcfc7b4, roughness: 0.8, metalness: 0 }),
-      saffron: new T.MeshStandardMaterial({ name: 'saffron', color: 0xd98118, roughness: 0.8 }),
-      white: new T.MeshStandardMaterial({ name: 'flagwhite', color: 0xd9d5cc, roughness: 0.8 }),
-      green: new T.MeshStandardMaterial({ name: 'flaggreen', color: 0x2f6b3a, roughness: 0.8 }),
-      glow: new T.MeshStandardMaterial({ name: 'glow', color: accent, emissive: accent, emissiveIntensity: 1.4, roughness: 0.4 })
-    };
-    const box = (w, h, d, mat, name) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.name = name; return m; };
-    const cyl = (rt, rb, h, mat, name, seg) => { const m = new T.Mesh(new T.CylinderGeometry(rt, rb, h, seg || 16), mat); m.name = name; return m; };
-    const sph = (r, mat, name) => { const m = new T.Mesh(new T.SphereGeometry(r, 22, 16), mat); m.name = name; return m; };
-
-    const root = new T.Group(); root.name = 'operator';
-    const hips = new T.Group(); hips.name = 'hips'; hips.position.y = 0.94; root.add(hips);
-    const belt = box(0.34, 0.11, 0.23, M.gear, 'belt'); belt.position.y = 0.03; hips.add(belt);
-    const buckle = box(0.07, 0.05, 0.02, M.steel, 'buckle'); buckle.position.set(0, 0.03, 0.121); hips.add(buckle);
-
-    const legs = {};
-    [-1, 1].forEach((sd) => {
-      const side = sd < 0 ? 'R' : 'L';
-      const hip = new T.Group(); hip.name = 'hip' + side;
-      hip.position.set(sd * 0.105, -0.02, 0); hips.add(hip);
-      const thigh = cyl(0.098, 0.085, 0.44, M.gear, 'thigh' + side);
-      thigh.position.y = -0.22; hip.add(thigh);
-      const knee = new T.Group(); knee.name = 'knee' + side; knee.position.y = -0.44; hip.add(knee);
-      const pad = box(0.15, 0.14, 0.13, M.pad, 'kneepad' + side); pad.position.set(0, -0.02, 0.045); knee.add(pad);
-      const shin = cyl(0.078, 0.062, 0.42, M.gear, 'shin' + side); shin.position.y = -0.21; knee.add(shin);
-      const boot = box(0.125, 0.1, 0.29, M.gear, 'boot' + side); boot.position.set(0, -0.44, 0.035); knee.add(boot);
-      const sole = box(0.13, 0.03, 0.3, M.pad, 'sole' + side); sole.position.set(0, -0.5, 0.035); knee.add(sole);
-      if (sd > 0) {
-        const rigPouch = box(0.1, 0.16, 0.07, M.gear, 'thighRig'); rigPouch.position.set(sd * 0.07, -0.24, 0.06); hip.add(rigPouch);
-        const pistol = box(0.05, 0.13, 0.05, M.steel, 'sidearm'); pistol.position.set(sd * 0.085, -0.26, 0.055); hip.add(pistol);
-      }
-      legs[side] = { hip: hip, knee: knee };
-    });
-
-    const chest = new T.Group(); chest.name = 'chest'; chest.position.y = 0.1; hips.add(chest);
-    const torso = box(0.38, 0.44, 0.24, M.gear, 'torso'); torso.position.y = 0.2; chest.add(torso);
-    const carrier = box(0.36, 0.34, 0.29, M.pad, 'plateCarrier'); carrier.position.y = 0.2; chest.add(carrier);
-    const patchDark = box(0.13, 0.08, 0.008, M.gear, 'patchBacking'); patchDark.position.set(0, 0.235, 0.146); chest.add(patchDark);
-    const patch141 = box(0.115, 0.065, 0.012, M.patch, 'patch141'); patch141.position.set(0, 0.235, 0.152); chest.add(patch141);
-    [[-0.11, 0.09], [0, 0.085], [0.11, 0.09]].forEach(([x, w], i) => {
-      const pouch = box(w, 0.11, 0.07, M.gear, 'pouch' + i);
-      pouch.position.set(x, 0.06, 0.155); chest.add(pouch);
-    });
-    const collar = cyl(0.1, 0.11, 0.09, M.gear, 'collar'); collar.position.y = 0.43; chest.add(collar);
-    const flag = new T.Group(); flag.name = 'flagPatch'; flag.position.set(0.2, 0.3, 0.035); flag.rotation.y = 0.5;
-    [[0.014, M.saffron], [0, M.white], [-0.014, M.green]].forEach(([y, mat], i) => {
-      const st = box(0.06, 0.014, 0.008, mat, 'flagStripe' + i); st.position.y = y; flag.add(st);
-    });
-    chest.add(flag);
-
-    const arms = {};
-    [-1, 1].forEach((sd) => {
-      const side = sd < 0 ? 'R' : 'L';
-      const sh = new T.Group(); sh.name = 'shoulder' + side;
-      sh.position.set(sd * 0.21, 0.34, 0); chest.add(sh);
-      const cap = sph(0.095, M.gear, 'shoulderCap' + side); sh.add(cap);
-      const upper = cyl(0.072, 0.062, 0.27, M.gear, 'upperArm' + side); upper.position.y = -0.145; sh.add(upper);
-      const elbow = new T.Group(); elbow.name = 'elbow' + side; elbow.position.y = -0.28; sh.add(elbow);
-      const fore = cyl(0.06, 0.05, 0.25, M.gear, 'forearm' + side); fore.position.y = -0.13; elbow.add(fore);
-      const hand = new T.Group(); hand.name = 'hand' + side; hand.position.y = -0.27; elbow.add(hand);
-      const glove = box(0.08, 0.1, 0.075, M.pad, 'glove' + side); hand.add(glove);
-      arms[side] = { sh: sh, elbow: elbow, hand: hand };
-    });
-
-    const neck = new T.Group(); neck.name = 'neck'; neck.position.y = 0.47; chest.add(neck);
-    const neckMesh = cyl(0.055, 0.06, 0.08, M.skin, 'neckMesh'); neckMesh.position.y = 0.03; neck.add(neckMesh);
-    const head = new T.Group(); head.name = 'head'; head.position.y = 0.1; neck.add(head);
-    const skull = sph(0.112, M.skin, 'skull'); skull.scale.set(1, 1.14, 1.06); skull.position.y = 0.05; head.add(skull);
-    const jaw = box(0.13, 0.08, 0.14, M.skin, 'jaw'); jaw.position.set(0, -0.025, 0.028); head.add(jaw);
-    const beard = box(0.115, 0.05, 0.12, M.gear, 'beard'); beard.position.set(0, -0.055, 0.04); head.add(beard);
-    const hairTop = sph(0.108, M.gear, 'hair'); hairTop.scale.set(1.02, 0.72, 1.04); hairTop.position.y = 0.105; head.add(hairTop);
-    const bun = sph(0.05, M.gear, 'hairBun'); bun.position.set(0, 0.12, -0.105); head.add(bun);
-    const glasses = box(0.225, 0.05, 0.055, M.lens, 'glasses'); glasses.position.set(0, 0.045, 0.088); head.add(glasses);
-    const gFrame = box(0.235, 0.012, 0.05, M.gear, 'glassesFrame'); gFrame.position.set(0, 0.07, 0.086); head.add(gFrame);
-    const band = new T.Mesh(new T.TorusGeometry(0.115, 0.014, 8, 28, Math.PI), M.olive);
-    band.name = 'headsetBand'; band.rotation.z = Math.PI / 2; band.rotation.y = Math.PI / 2; band.position.y = 0.08; head.add(band);
-    [-1, 1].forEach((sd) => {
-      const cup = cyl(0.048, 0.048, 0.045, M.olive, 'earCup' + (sd < 0 ? 'L' : 'R'));
-      cup.rotation.z = Math.PI / 2; cup.position.set(sd * 0.115, 0.02, 0); head.add(cup);
-    });
-    const boom = cyl(0.006, 0.006, 0.12, M.gear, 'micBoom', 8);
-    boom.position.set(-0.085, -0.02, 0.055); boom.rotation.set(0.5, 0, 0.9); head.add(boom);
-    const mic = sph(0.014, M.gear, 'mic'); mic.position.set(-0.045, -0.055, 0.095); head.add(mic);
-    const nvg = box(0.09, 0.045, 0.05, M.steel, 'nvgMount'); nvg.position.set(0, 0.155, 0.055); head.add(nvg);
-
-    const rifle = new T.Group(); rifle.name = 'rifle';
-    const receiver = box(0.055, 0.075, 0.34, M.steel, 'receiver'); rifle.add(receiver);
-    const handguard = cyl(0.028, 0.028, 0.3, M.steel, 'handguard', 8); handguard.rotation.x = Math.PI / 2; handguard.position.z = 0.31; rifle.add(handguard);
-    const barrel = cyl(0.011, 0.011, 0.16, M.steel, 'barrel', 6); barrel.rotation.x = Math.PI / 2; barrel.position.z = 0.53; rifle.add(barrel);
-    const supp = cyl(0.022, 0.022, 0.17, M.pad, 'suppressor', 8); supp.rotation.x = Math.PI / 2; supp.position.z = 0.66; rifle.add(supp);
-    const mag = box(0.045, 0.19, 0.07, M.steel, 'magazine'); mag.position.set(0, -0.12, 0.02); mag.rotation.x = 0.16; rifle.add(mag);
-    const grip = box(0.04, 0.11, 0.05, M.gear, 'pistolGrip'); grip.position.set(0, -0.08, -0.12); grip.rotation.x = -0.28; rifle.add(grip);
-    const stock = box(0.05, 0.09, 0.22, M.gear, 'stock'); stock.position.z = -0.26; rifle.add(stock);
-    const buttpad = box(0.055, 0.11, 0.03, M.pad, 'buttpad'); buttpad.position.z = -0.375; rifle.add(buttpad);
-    const rail = box(0.03, 0.02, 0.36, M.steel, 'rail'); rail.position.set(0, 0.048, 0.14); rifle.add(rail);
-    const optic = box(0.045, 0.055, 0.13, M.steel, 'optic'); optic.position.set(0, 0.085, 0.1); rifle.add(optic);
-    const opticLens = cyl(0.021, 0.021, 0.008, M.glow, 'opticLens', 10); opticLens.rotation.x = Math.PI / 2; opticLens.position.set(0, 0.085, 0.168); rifle.add(opticLens);
-    const foreGrip = box(0.035, 0.09, 0.04, M.gear, 'foreGrip'); foreGrip.position.set(0, -0.06, 0.36); rifle.add(foreGrip);
-    const muzzle = new T.Object3D(); muzzle.name = 'muzzle'; muzzle.position.z = 0.76; rifle.add(muzzle);
-
-    /* shouldered: barrel runs along the chest's forward axis, so aiming the
-       upper body aims the weapon */
-    chest.add(rifle);
-    rifle.position.set(0.0, -0.1, 0.16);
-    rifle.rotation.set(0, 0, 0.05);
-
-    root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-    return { root: root, hips: hips, chest: chest, neck: neck, head: head, arms: arms, legs: legs,
-      rifle: rifle, muzzle: muzzle, mats: M, hipsRestY: 0.94, armL1: 0.28, armL2: 0.27, sync: null };
-  }
-
-  /* two-bone IK: puts the hand exactly on a target expressed in chest space */
-  /* Where each hand sits in weapon space. Measured off the CZ Bren: the pistol
-     grip 0.150 behind the rifle's centre, the vertical foregrip 0.132 ahead of
-     it, both a little under the barrel line. */
-  const GRIP_R = { x: 0, y: -0.048, z: -0.150 };
-  const GRIP_L = { x: 0, y: -0.044, z: 0.132 };
-  /* wrist frames in weapon space: dir runs from the wrist down through the fingers,
-     palm is the direction the palm faces. The pistol grip rakes back, the vertical
-     foregrip hangs straight down, and the two palms oppose each other. */
-  const HAND_R = { dir: { x: 0.1, y: -1, z: -0.42 }, palm: { x: -0.35, y: -0.2, z: 1 } };
-  const HAND_L = { dir: { x: -0.08, y: -1, z: 0.16 }, palm: { x: 0.4, y: -0.15, z: -1 } };
-  function makeSolver(T) {
-    const DOWN = new T.Vector3(0, -1, 0);
-    const XAX = new T.Vector3(1, 0, 0);
-    const v = new T.Vector3(), q1 = new T.Quaternion(), q2 = new T.Quaternion(), q3 = new T.Quaternion();
-    /* twist swings the elbow out of the torso without moving the hand */
-    return function solveArm(arm, target, l1, l2, twist) {
-      v.copy(target).sub(arm.sh.position);
-      let d = v.length();
-      const max = (l1 + l2) * 0.995;
-      if (d > max) d = max;
-      if (d < 0.04) d = 0.04;
-      const ci = Math.max(-1, Math.min(1, (l1 * l1 + l2 * l2 - d * d) / (2 * l1 * l2)));
-      const bend = Math.PI - Math.acos(ci);
-      arm.elbow.rotation.set(-bend, 0, 0);
-      const alpha = Math.atan2(l2 * Math.sin(bend), l1 + l2 * Math.cos(bend));
-      v.normalize();
-      q1.setFromUnitVectors(DOWN, v);
-      q2.setFromAxisAngle(XAX, alpha);
-      q3.setFromAxisAngle(v, twist || 0);
-      arm.sh.quaternion.copy(q3).multiply(q1).multiply(q2);
-    };
-  }
-
-  function poseWeaponReady() {}
 
   class OperatorScene extends HTMLElement {
     static get observedAttributes() { return ['accent', 'motion', 'look']; }
 
     _applyLook() {
-      const f = this._figure;
+      const M = this._rigMats;
+      if (!M) return;
       const wire = (this.getAttribute('look') || 'textured') === 'wireframe';
-      if (this._rigMats) {
-        const M = this._rigMats;
-        Object.keys(M).forEach((k) => {
-          if (k === 'glow' || M[k].name === 'wpnLens') return;
-          const m = M[k];
-          if (m.userData.solidHex === undefined) m.userData.solidHex = m.color.getHex();
-          m.wireframe = wire;
-          m.color.setHex(wire ? 0xe9e7e2 : m.userData.solidHex);
-          m.userData.fade = wire ? 0.34 : 1;
-        });
-      }
-      if (!f) return;
-      f.mesh.visible = !wire;
-      f.wire.visible = wire;
+      Object.keys(M).forEach((k) => {
+        const m = M[k];
+        if (!m || m.name === 'wpnLens' || m.name === 'glass_lens') return;
+        if (m.userData.solidHex === undefined && m.color) m.userData.solidHex = m.color.getHex();
+        m.wireframe = wire;
+        if (m.color) m.color.setHex(wire ? 0xe9e7e2 : m.userData.solidHex);
+        m.userData.fade = wire ? 0.34 : 1;
+      });
     }
 
     connectedCallback() {
       Object.assign(this.style, { display: 'block', position: 'absolute', inset: '0', width: '100%', height: '100%', overflow: 'hidden' });
       loadThree().then((T) => { if (!this._dead) this.build(T); }).catch(() => {});
     }
+
     disconnectedCallback() {
       this._dead = true;
       if (this._raf) cancelAnimationFrame(this._raf);
@@ -638,6 +212,7 @@
        ['operator:deploy', this._onDeploy]].forEach(([k, fn]) => fn && window.removeEventListener(k, fn));
       if (this._renderer) { this._renderer.dispose(); this._renderer.domElement.remove(); }
     }
+
     attributeChangedCallback(n, _o, v) {
       if (!this._T || !v) return;
       if (n === 'accent' && this._accentMats) this._accentMats.forEach((m) => {
@@ -715,40 +290,40 @@
       dgeo.setAttribute('position', new T.BufferAttribute(dp, 3));
       scene.add(new T.Points(dgeo, new T.PointsMaterial({ color: accent, size: 0.035, transparent: true, opacity: 0.5, blending: T.AdditiveBlending, depthWrite: false, fog: true })));
 
-      const rig = buildOperator(T, accent);
-      this._rig = rig;
-      const qKick = new T.Quaternion(), AXIS_X = new T.Vector3(1, 0, 0);
+      /* Empty holders so the hangar renders while the model streams in;
+         loadOperator fills them and flips `ready`. */
+      const rig = {
+        root: new T.Group(),
+        hips: new T.Object3D(), chest: new T.Object3D(), neck: new T.Object3D(), head: new T.Object3D(),
+        legs: { L: { hip: new T.Object3D(), knee: new T.Object3D() }, R: { hip: new T.Object3D(), knee: new T.Object3D() } },
+        muzzle: new T.Object3D(),
+        rifle: null, rifleBase: null, recoilAxis: new T.Vector3(0, 0, -1),
+        hipsRestY: 0, aimYawOffset: 0, sync: null, ready: false
+      };
+      rig.muzzle.position.set(0, 1.4, 0.5);
+      rig.root.add(rig.muzzle);
       scene.add(rig.root);
-      const allMats = Object.keys(rig.mats).map((k) => rig.mats[k]);
-      allMats.forEach((m) => { m.transparent = true; m.opacity = 0; });
-      this._rigMats = rig.mats;
-      this._applyLook();
+      this._rig = rig;
+
+      const qKick = new T.Quaternion(), AXIS_X = new T.Vector3(1, 0, 0);
+      const allMats = [];
+      this._accentMats = this._accentMats || [];
 
       const bonemapP = fetch(this.getAttribute('bonemap') || 'bonemap.json')
         .then((r) => r.json()).catch(() => null);
 
-      bonemapP.then((bm) => {
-        if (this._dead || (bm && bm.weapon && bm.weapon.node)) return;
-        loadWeapon(T, rig, this.getAttribute('weapon') || 'czbren2.glb', accent, onWeapon);
-      });
-
-      const onWeapon = (mats) => {
-        if (this._dead) return;
-        mats.forEach((m, i) => {
-          m.transparent = true;
-          m.opacity = 0;
-          rig.mats['wpn' + i] = m;
+      loadOperator(T, rig, this.getAttribute('model') || 'operator-rigged.glb', bonemapP, (info) => {
+        if (this._dead || !info) return;
+        this._rigMats = info.mats;
+        Object.keys(info.mats).forEach((k) => {
+          const m = info.mats[k];
           allMats.push(m);
-          if (m.name === 'wpnLens') (this._accentMats = this._accentMats || []).push(m);
+          if (m.name === 'wpnLens' || m.name === 'glass_lens') {
+            if (m.emissive) m.emissive.set(accent);
+            if (m.color) m.color.set(accent);
+            this._accentMats.push(m);
+          }
         });
-        this._applyLook();
-      };
-
-      attachRigged(T, rig, this.getAttribute('model') || 'operator-rigged.glb',
-        bonemapP, (mesh, mat, wire, wireMat) => {
-        if (this._dead) return;
-        allMats.push(mat, wireMat);
-        this._figure = { mesh: mesh, wire: wire };
         this._applyLook();
       });
 
@@ -783,7 +358,7 @@
         impacts.push({ ring: ring, m: m, sparks: sparks, sm: sm, dir: dir, life: 0 });
       }
       let impactCursor = 0;
-      this._accentMats = (this._accentMats || []).concat([rig.mats.glow, shaftMat, flashMat, tracerMat, markMat]);
+      this._accentMats = this._accentMats.concat([shaftMat, flashMat, tracerMat, markMat]);
       impacts.forEach((i) => this._accentMats.push(i.m, i.sm));
 
       let camDist = 4.4, camBias = 1.5;
@@ -836,7 +411,7 @@
 
       const wm = new T.Vector3(), wd = new T.Vector3();
       const fire = () => {
-        if ((!deployed && !window.__operatorDeployed) || reloading > 0 || assembleT < 0.8) return;
+        if ((!deployed && !window.__operatorDeployed) || reloading > 0 || assembleT < 0.8 || !rig.ready) return;
         if (ammo <= 0) { reload(); return; }
         ammo--; shots++; kick = 1; shake = 1;
         rig.root.updateMatrixWorld(true);
@@ -929,7 +504,7 @@
 
         const idle = moving < 0.05 ? Math.min(1, Math.max(0, (t - lastMove - 2.2) / 2.4)) : 0;
         if (idle <= 0.001) orbit = 0; else orbit += dt * 0.22;
-        /* aim from a yaw-independent reference (the chest pivot in world space),
+        /* aim from a yaw-independent reference (the body pivot in world space),
            otherwise the muzzle's own swing feeds back and spins him around */
         aimPlane.set(new T.Vector3(0, 0, 1), -(rig.root.position.z + 2.3));
         ndc.set(ptr.x, -ptr.y);
@@ -942,18 +517,20 @@
         aimYaw += (yawT - aimYaw) * 0.14;
         aimPitch += (pitchT - aimPitch) * 0.14;
 
-        /* aim: hips turn part way, upper body carries the rest — the rifle is
-           shouldered on the chest, so this points the barrel at the cursor */
+        /* Aim: the root carries most of the turn, the chest adds the rest. Both
+           are offsets — the shouldered pose underneath is never rewritten, so the
+           weapon stays exactly where the artist put it relative to the hands. */
         const yaw = Math.max(-1.1, Math.min(1.1, aimYaw));
-        rig.root.rotation.y = yaw * 0.45;
-        rig.chest.rotation.y = yaw * 0.55;
+        rig.root.rotation.y = yaw * 0.72;
+        rig.chest.rotation.y = yaw * 0.28;
         const pitch = Math.max(-0.34, Math.min(0.34, -aimPitch));
-        rig.chest.rotation.x = pitch - recoil * 0.1 + walk * 0.05;
-        rig.chest.rotation.z = Math.sin(t * 0.8) * 0.012;
-        rig.neck.rotation.x = pitch * 0.3;
-        rig.head.rotation.y = -yaw * 0.15;
-        /* recoil and reload play out as offsets from the socket transform, in the weapon's
-           own axes — the grip itself can never drift */
+        rig.chest.rotation.x = pitch * 0.65 - recoil * 0.06 + walk * 0.03;
+        rig.chest.rotation.z = Math.sin(t * 0.8) * 0.012 + Math.sin(t * 1.6) * 0.005;
+        rig.neck.rotation.x = pitch * 0.25;
+        rig.head.rotation.y = -yaw * 0.12;
+
+        /* recoil and reload play out as offsets from the weapon's posed transform,
+           in the weapon's own axes — the grip itself can never drift */
         if (rig.rifleBase) {
           const b = rig.rifleBase;
           let kickPitch = -recoil * 0.13, kickBack = recoil * 0.03;
@@ -966,16 +543,17 @@
           rig.rifle.quaternion.copy(b.quat).multiply(qKick.setFromAxisAngle(AXIS_X, kickPitch));
         }
 
-
-
+        /* Legs: a shallow swing over the posed stance. Deliberately small — the
+           pose is a planted firing stance, and a full stride would fight it. */
         phase += dt * (5.4 + 3 * walk) * (moving > 0.05 ? 1 : 0) * s;
-        rig.legs.L.hip.rotation.x = Math.sin(phase) * 0.5 * walk;
-        rig.legs.R.hip.rotation.x = Math.sin(phase + Math.PI) * 0.5 * walk;
-        rig.legs.L.knee.rotation.x = Math.max(0, -Math.sin(phase + 0.7)) * 0.85 * walk;
-        rig.legs.R.knee.rotation.x = Math.max(0, -Math.sin(phase + Math.PI + 0.7)) * 0.85 * walk;
+        rig.legs.L.hip.rotation.x = Math.sin(phase) * 0.34 * walk;
+        rig.legs.R.hip.rotation.x = Math.sin(phase + Math.PI) * 0.34 * walk;
+        rig.legs.L.knee.rotation.x = Math.max(0, -Math.sin(phase + 0.7)) * 0.5 * walk;
+        rig.legs.R.knee.rotation.x = Math.max(0, -Math.sin(phase + Math.PI + 0.7)) * 0.5 * walk;
         rig.hips.position.y = rig.hipsRestY + Math.abs(Math.sin(phase * 2)) * 0.022 * walk + Math.sin(t * 1.1) * 0.006;
         rig.hips.rotation.z = Math.sin(phase) * 0.03 * walk;
         if (rig.sync) rig.sync();
+
         mark.position.x = rig.root.position.x;
         mark.position.z = rig.root.position.z;
         mark.rotation.z = t * 0.25;

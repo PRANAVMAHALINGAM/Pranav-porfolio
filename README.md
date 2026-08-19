@@ -69,68 +69,38 @@ falls back to a hatched placeholder when it has no `image`.
 
 ## The 3D model
 
-`public/scene/operator-rigged.glb` (11.5 MB) is the operator on a **Rigify**
-skeleton (`DEF-*`). `bonemap.json` maps the 16 control points the scene's proxy
-rig drives onto it.
+`public/scene/operator-rigged.glb` (11.2 MB) is the operator exported from
+Blender **already posed** — rifle shouldered, hands on the grips, the CZ Bren
+parented to `mixamorig:RightHand` with a `MUZZLE` marker on it.
 
-> **The model must be exported in rest / T-pose.** `operator-scene` poses the
-> character at runtime: it rebuilds its proxy rig from the real rig's
-> measurements, solves IK on the proxy, and retargets the result as *rotation
-> deltas from the rest pose*. Give it a rig whose bind pose is already a
-> shooting stance and the stance is applied twice — the mesh collapses. The
-> giveaway is an asymmetric rest: this rig's hands sit at x = ±0.6162, mirrored.
-> `bonemap.mixamo.json` is a ready-made map for the Mixamo re-rig; it binds all
-> 16 roles but needs a rest-pose export before it can be used.
+**The pose is the art. The scene never rewrites a bone.** An earlier version
+rebuilt a proxy skeleton, solved IK to put the hands on the weapon and
+retargeted the result every frame. That needs a rig exported in T-pose — give it
+a posed one and the stance gets applied twice and the mesh collapses — and even
+on the right rig the stance took constant tuning. It is gone.
 
-A bonemap may also carry three optional keys:
+What is left only ever adds small offsets on top of the exported pose:
 
-| key | effect |
+| channel | what moves |
 |---|---|
-| `spread` | intermediate spine bones that share the chest's bend |
-| `sides` | `"direct"` binds proxy L/R straight to the named bones instead of guessing sides from bone X positions — the guess misreads a rig exported already posed |
-| `weapon` | names the weapon and muzzle nodes the model already carries, so the scene hides its procedural block-out rifle and does not load a separate weapon file |
+| aim | root yaw, plus a little chest yaw and pitch |
+| walk | root bob, a shallow thigh and knee swing |
+| breathe | a slow sine on the chest |
+| recoil | a kick on the weapon node, in the weapon's own axes |
 
-Swapping in a different rig means replacing the GLB and rewriting `bones` — no
-code change, as long as the 16 roles can be named and the export is in rest pose.
+Because the baked pose is always the rest those offsets are measured from,
+nothing here can deform the character. `bonemap.json` names the eight bones the
+scene may nudge and the weapon and muzzle nodes; everything else in the skeleton
+is left exactly as exported. The scene also self-calibrates on load: it stands
+the model on the floor from its own bounding box, derives the barrel direction
+from the muzzle marker, and records the angle between the barrel and the body so
+aiming points the muzzle at the cursor rather than the sternum.
 
-### The rifle
+Swapping in a different operator means replacing the GLB and, if the bone names
+differ, editing `bones`. Pose it however you like — posed is what this wants.
 
-Without `czbren2.glb` the scene draws a grey block-out placeholder — the shape
-its hand IK was tuned against, never meant to be seen. The real CZ Bren was
-extracted from `operator_posed.glb` (which carries it parented to the right
-hand) with `tools/extract_rifle.py`, a Blender headless script that normalises
-it to the convention `loadWeapon` expects:
-
-    length 4.627 along +Z, muzzle tip at +Z 2.298, origin at the rifle's centre
-
-It also renames the materials so the scene's prefix matcher picks sensible ones
-(`glass*` becomes the emissive lens, `grip|stock|mag*` dark polymer, and so on).
-Re-run it if the weapon model changes:
-
-```bash
-blender --background --python tools/extract_rifle.py -- in.glb out.glb render=preview.png
-```
-
-The `render=` argument is optional and writes a side-on preview, which is how
-the roll orientation gets checked — geometry alone can't tell you which way is
-up.
-
-If the GLB fails to load, `attachRigged()` bails and the scene falls back to its
-procedural proxy rig, a fully jointed IK-solved character built in code.
-
-`vercel.json` deliberately excludes `/scene/` from the SPA rewrite so a missing
-asset 404s instead of being served `index.html`.
-
-## Blog images
-
-LinkedIn's media URLs are signed and expire, so hot-linking them left every
-tile blank. The images in `public/blog/` were fetched once — LinkedIn serves
-`og:image` with a fresh signature to crawler user agents — and are now served
-locally, so the tiles no longer depend on a signature.
-
-Post dates come from each post's own id (LinkedIn encodes the creation
-timestamp in the high bits), which corrected a set of dates that were a year
-behind. To add a post: append the URL, re-run the fetch, and drop the image in.
+If the GLB fails to load the hangar still renders; the character simply never
+appears.
 
 ## Theming
 

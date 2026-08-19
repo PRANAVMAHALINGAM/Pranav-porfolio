@@ -56,7 +56,6 @@ const OperatorScene = ({ accent = '#ffb020', motion = 'standard', look = 'textur
     <operator-scene
       ref={hostRef}
       model="/scene/operator-rigged.glb"
-      weapon="/scene/czbren2.glb"
       bonemap="/scene/bonemap.json"
     />
   );
