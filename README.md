@@ -68,11 +68,20 @@ falls back to a hatched placeholder when it has no `image`.
 
 ## The 3D model
 
-`public/scene/operator-rigged.glb` (11.2 MB) is the posed operator exported from
-Blender on a **Mixamo** skeleton (`mixamorig:*`), with the CZ Bren parented to
-`mixamorig:RightHand` and a `MUZZLE` marker on it. `bonemap.json` maps the 16
-control points the scene's proxy rig drives onto that skeleton, and carries
-three extra keys the scene reads:
+`public/scene/operator-rigged.glb` (11.5 MB) is the operator on a **Rigify**
+skeleton (`DEF-*`). `bonemap.json` maps the 16 control points the scene's proxy
+rig drives onto it.
+
+> **The model must be exported in rest / T-pose.** `operator-scene` poses the
+> character at runtime: it rebuilds its proxy rig from the real rig's
+> measurements, solves IK on the proxy, and retargets the result as *rotation
+> deltas from the rest pose*. Give it a rig whose bind pose is already a
+> shooting stance and the stance is applied twice — the mesh collapses. The
+> giveaway is an asymmetric rest: this rig's hands sit at x = ±0.6162, mirrored.
+> `bonemap.mixamo.json` is a ready-made map for the Mixamo re-rig; it binds all
+> 16 roles but needs a rest-pose export before it can be used.
+
+A bonemap may also carry three optional keys:
 
 | key | effect |
 |---|---|
@@ -81,7 +90,10 @@ three extra keys the scene reads:
 | `weapon` | names the weapon and muzzle nodes the model already carries, so the scene hides its procedural block-out rifle and does not load a separate weapon file |
 
 Swapping in a different rig means replacing the GLB and rewriting `bones` — no
-code change, as long as the 16 roles can be named.
+code change, as long as the 16 roles can be named and the export is in rest pose.
+
+The rifle is the scene's procedural block-out unless `czbren2.glb` is present
+in `public/scene/`, or the model brings its own via the `weapon` key.
 
 If the GLB fails to load, `attachRigged()` bails and the scene falls back to its
 procedural proxy rig, a fully jointed IK-solved character built in code.
