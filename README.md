@@ -37,8 +37,7 @@ public/blog/            post images, pulled once from LinkedIn (see below)
 public/scene/
   operator-scene.js     WebGL custom element (vendored — excluded from lint)
   bonemap.json          proxy-rig → Rigify bone mapping
-  operator-rigged.glb   ← not in the repo, see below
-  czbren2.glb           ← not in the repo, see below
+  operator-rigged.glb   the operator (Mixamo rig, rifle included)
 
 src/
   data/                 all copy lives here, not in components
@@ -67,17 +66,25 @@ shows only `openSourceProjects`, while `/projects` shows everything via
 `projectsByRepoFirst`, which leads with the ones you can go read. A project
 falls back to a hatched placeholder when it has no `image`.
 
-## Missing 3D assets
+## The 3D model
 
-`operator-rigged.glb` (~12 MB) and `czbren2.glb` (~2 MB) live in the Claude
-Design project but could not be pulled through the design API, which truncates
-file reads at 256 KiB. Download both and drop them in `public/scene/`.
+`public/scene/operator-rigged.glb` (11.2 MB) is the posed operator exported from
+Blender on a **Mixamo** skeleton (`mixamorig:*`), with the CZ Bren parented to
+`mixamorig:RightHand` and a `MUZZLE` marker on it. `bonemap.json` maps the 16
+control points the scene's proxy rig drives onto that skeleton, and carries
+three extra keys the scene reads:
 
-Until then the scene still runs: `attachRigged()` bails when the GLB fails to
-load and you get the procedural proxy rig — a fully jointed, IK-solved
-character built in code. The weapon falls back the same way. The only symptom
-is a couple of loader errors in the console, which disappear once the files are
-in place.
+| key | effect |
+|---|---|
+| `spread` | intermediate spine bones that share the chest's bend |
+| `sides` | `"direct"` binds proxy L/R straight to the named bones instead of guessing sides from bone X positions — the guess misreads a rig exported already posed |
+| `weapon` | names the weapon and muzzle nodes the model already carries, so the scene hides its procedural block-out rifle and does not load a separate weapon file |
+
+Swapping in a different rig means replacing the GLB and rewriting `bones` — no
+code change, as long as the 16 roles can be named.
+
+If the GLB fails to load, `attachRigged()` bails and the scene falls back to its
+procedural proxy rig, a fully jointed IK-solved character built in code.
 
 `vercel.json` deliberately excludes `/scene/` from the SPA rewrite so a missing
 asset 404s instead of being served `index.html`.

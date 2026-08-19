@@ -38,13 +38,14 @@
     thighL: 'DEF-thighL', kneeL: 'DEF-shinL', footL: 'DEF-footL',
     thighR: 'DEF-thighR', kneeR: 'DEF-shinR', footR: 'DEF-footR'
   };
-  /* intermediate spine bones share the chest's bend so the torso curves */
+  /* intermediate spine bones share the chest's bend so the torso curves.
+     Rigify defaults; a bonemap may supply its own `spread` for another rig. */
   const SPREAD = [['DEF-spine001', 'chest', 0.3], ['DEF-spine002', 'chest', 0.45], ['DEF-spine005', 'head', 0.4]];
   /* GLTFLoader sanitizes node names, so ".003" arrives as "003" */
   const bkey = (s) => String(s).replace(/\s/g, '_').replace(/[.:/[\]]/g, '');
 
-  function attachRigged(T, rig, url, mapUrl, done) {
-    const wantMap = fetch(mapUrl).then((r) => r.json()).catch(() => null);
+  function attachRigged(T, rig, url, mapPromise, done) {
+    const wantMap = Promise.resolve(mapPromise);
     new T.GLTFLoader().load(url, (gltf) => {
       wantMap.then((bm) => {
         const names = (bm && bm.bones) || {};
@@ -64,6 +65,22 @@
 
         rig.root.add(gltf.scene);
         gltf.scene.updateMatrixWorld(true);
+
+        /* The model may ship its own weapon already parented to a hand. Keep it
+           and retire the block-out, otherwise the operator carries two rifles. */
+        const wpn = bm && bm.weapon;
+        if (wpn && wpn.node) {
+          let own = null, ownMuzzle = null;
+          gltf.scene.traverse((o) => {
+            if (o.name === wpn.node) own = o;
+            if (wpn.muzzle && o.name === wpn.muzzle) ownMuzzle = o;
+          });
+          if (own) {
+            rig.rifle.traverse((o) => { if (o.isMesh) { o.visible = false; o.userData.keep = false; } });
+            rig.ownWeapon = own;
+            if (ownMuzzle) rig.muzzle = ownMuzzle;
+          }
+        }
         const wp = (o) => o.getWorldPosition(new T.Vector3());
         const P = {};
         BONE_KEYS.forEach((k) => { if (real[k]) P[k] = wp(real[k]); });
@@ -71,9 +88,15 @@
         /* the proxy is rebuilt on the real rig's measurements, so IK solved on the
            proxy lands the real hands exactly on the weapon */
         /* the proxy's 'R' limb sits on -x, so it binds to whichever real bone is on -x
-           — that keeps the trigger hand on the character's actual right */
-        const armSide = { R: P.shoulderL.x < 0 ? 'L' : 'R', L: P.shoulderL.x < 0 ? 'R' : 'L' };
-        const legSide = { R: P.thighL.x < 0 ? 'L' : 'R', L: P.thighL.x < 0 ? 'R' : 'L' };
+           — that keeps the trigger hand on the character's actual right.
+           A bonemap can set sides:"direct" to opt out: the guess reads x positions
+           from the loaded pose, which is wrong for a rig exported already posed, or
+           for one whose weapon is parented to a specific hand. */
+        const direct = bm && bm.sides === 'direct';
+        const armSide = direct ? { R: 'R', L: 'L' }
+          : { R: P.shoulderL.x < 0 ? 'L' : 'R', L: P.shoulderL.x < 0 ? 'R' : 'L' };
+        const legSide = direct ? { R: 'R', L: 'L' }
+          : { R: P.thighL.x < 0 ? 'L' : 'R', L: P.thighL.x < 0 ? 'R' : 'L' };
 
         rig.hips.position.copy(P.hips);
         rig.hipsRestY = P.hips.y;
@@ -159,7 +182,7 @@
           steps.push({ bone: bone, proxy: proxy, w: w, pRest: wq(proxy), rRest: wq(bone) });
         };
         ['hips', 'chest', 'neck', 'head'].forEach((k) => push(real[k], rig[k], 1));
-        SPREAD.forEach(([bn, pk, w]) => {
+        ((bm && bm.spread) || SPREAD).forEach(([bn, pk, w]) => {
           const b = byName[bkey(bn)];
           if (b && b.isBone) push(b, rig[pk], w);
         });
@@ -687,7 +710,15 @@
       this._rigMats = rig.mats;
       this._applyLook();
 
-      loadWeapon(T, rig, this.getAttribute('weapon') || 'czbren2.glb', accent, (mats) => {
+      const bonemapP = fetch(this.getAttribute('bonemap') || 'bonemap.json')
+        .then((r) => r.json()).catch(() => null);
+
+      bonemapP.then((bm) => {
+        if (this._dead || (bm && bm.weapon && bm.weapon.node)) return;
+        loadWeapon(T, rig, this.getAttribute('weapon') || 'czbren2.glb', accent, onWeapon);
+      });
+
+      const onWeapon = (mats) => {
         if (this._dead) return;
         mats.forEach((m, i) => {
           m.transparent = true;
@@ -697,10 +728,10 @@
           if (m.name === 'wpnLens') (this._accentMats = this._accentMats || []).push(m);
         });
         this._applyLook();
-      });
+      };
 
       attachRigged(T, rig, this.getAttribute('model') || 'operator-rigged.glb',
-        this.getAttribute('bonemap') || 'bonemap.json', (mesh, mat, wire, wireMat) => {
+        bonemapP, (mesh, mat, wire, wireMat) => {
         if (this._dead) return;
         allMats.push(mat, wireMat);
         this._figure = { mesh: mesh, wire: wire };

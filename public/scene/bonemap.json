@@ -1,49 +1,130 @@
 {
-  "_convention": "Assumes +X (Blender) = character's own left side after centering. Flip L/R downstream if your source rig used the opposite convention.",
+  "_convention": "Mixamo skeleton (mixamorig:*) exported from Blender. Roles map to the same 16 control points the proxy rig uses; shoulder* is the upper arm, not the clavicle. operator-scene strips dots and colons when matching, so \"mixamorig:Hips\" and \"mixamorigHips\" both resolve.",
   "bones": {
-    "hips": "DEF-spine",
-    "chest": "DEF-spine.003",
-    "neck": "DEF-spine.004",
-    "head": "DEF-spine.006",
-    "shoulderL": "DEF-upper_arm.L",
-    "elbowL": "DEF-forearm.L",
-    "handL": "DEF-hand.L",
-    "shoulderR": "DEF-upper_arm.R",
-    "elbowR": "DEF-forearm.R",
-    "handR": "DEF-hand.R",
-    "thighL": "DEF-thigh.L",
-    "kneeL": "DEF-shin.L",
-    "footL": "DEF-foot.L",
-    "thighR": "DEF-thigh.R",
-    "kneeR": "DEF-shin.R",
-    "footR": "DEF-foot.R"
+    "hips": "mixamorig:Hips",
+    "chest": "mixamorig:Spine2",
+    "neck": "mixamorig:Neck",
+    "head": "mixamorig:Head",
+    "shoulderL": "mixamorig:LeftArm",
+    "elbowL": "mixamorig:LeftForeArm",
+    "handL": "mixamorig:LeftHand",
+    "shoulderR": "mixamorig:RightArm",
+    "elbowR": "mixamorig:RightForeArm",
+    "handR": "mixamorig:RightHand",
+    "thighL": "mixamorig:LeftUpLeg",
+    "kneeL": "mixamorig:LeftLeg",
+    "footL": "mixamorig:LeftFoot",
+    "thighR": "mixamorig:RightUpLeg",
+    "kneeR": "mixamorig:RightLeg",
+    "footR": "mixamorig:RightFoot"
+  },
+  "sides": "direct",
+  "spread": [
+    [
+      "mixamorig:Spine",
+      "chest",
+      0.3
+    ],
+    [
+      "mixamorig:Spine1",
+      "chest",
+      0.45
+    ]
+  ],
+  "weapon": {
+    "node": "CZ_Bren",
+    "muzzle": "MUZZLE"
   },
   "world_rest_position": {
-    "hips": [0.0, 0.0, 0.943876],
-    "chest": [0.0, -0.04607, 1.36981],
-    "neck": [0.0, -0.04093, 1.549696],
-    "head": [0.0, -0.074665, 1.66473],
-    "shoulderL": [0.182503, -0.026633, 1.480919],
-    "elbowL": [0.413412, 0.031118, 1.354298],
-    "handL": [0.616193, -0.005607, 1.220668],
-    "shoulderR": [-0.182503, -0.026633, 1.480919],
-    "elbowR": [-0.413412, 0.031118, 1.354298],
-    "handR": [-0.616193, -0.005607, 1.220668],
-    "thighL": [0.091579, -0.039996, 1.001907],
-    "kneeL": [0.091579, -0.078309, 0.502149],
-    "footL": [0.091579, -0.036445, 0.079766],
-    "thighR": [-0.091579, -0.039996, 1.001907],
-    "kneeR": [-0.091579, -0.078309, 0.502149],
-    "footR": [-0.091579, -0.036445, 0.079766]
+    "hips": [
+      -0.048365,
+      0.995703,
+      0.019965
+    ],
+    "chest": [
+      -0.074528,
+      1.370404,
+      0.047453
+    ],
+    "neck": [
+      -0.021807,
+      1.520986,
+      0.00917
+    ],
+    "head": [
+      0.025,
+      1.592836,
+      -0.025691
+    ],
+    "shoulderL": [
+      -0.164299,
+      1.437493,
+      -0.180592
+    ],
+    "elbowL": [
+      -0.092304,
+      1.341507,
+      -0.336855
+    ],
+    "handL": [
+      0.08871,
+      1.467538,
+      -0.466766
+    ],
+    "shoulderR": [
+      0.092852,
+      1.454739,
+      0.224667
+    ],
+    "elbowR": [
+      0.229547,
+      1.329075,
+      0.158065
+    ],
+    "handR": [
+      0.16748,
+      1.438001,
+      -0.063733
+    ],
+    "thighL": [
+      -0.120812,
+      0.937892,
+      -0.086295
+    ],
+    "kneeL": [
+      -0.135901,
+      0.519193,
+      -0.299719
+    ],
+    "footL": [
+      -0.154911,
+      0.123108,
+      -0.249628
+    ],
+    "thighR": [
+      0.031454,
+      0.932163,
+      0.116755
+    ],
+    "kneeR": [
+      0.116558,
+      0.469908,
+      0.108107
+    ],
+    "footR": [
+      -0.029525,
+      0.129359,
+      0.254932
+    ]
   },
   "segment_lengths_m": {
-    "shoulderL_to_elbowL": 0.269605,
-    "elbowL_to_handL": 0.245613,
-    "shoulderR_to_elbowR": 0.269605,
-    "elbowR_to_handR": 0.245613,
-    "thighL_to_kneeL": 0.501224,
-    "kneeL_to_footL": 0.424452,
-    "thighR_to_kneeR": 0.501224,
-    "kneeR_to_footR": 0.424452
+    "shoulderL_to_elbowL": 0.197015,
+    "elbowL_to_handL": 0.255982,
+    "shoulderR_to_elbowR": 0.197263,
+    "elbowR_to_handR": 0.254777,
+    "thighL_to_kneeL": 0.470198,
+    "kneeL_to_footL": 0.399692,
+    "thighR_to_kneeR": 0.470103,
+    "kneeR_to_footR": 0.398587
   }
 }
