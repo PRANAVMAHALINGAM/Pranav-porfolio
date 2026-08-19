@@ -5,7 +5,7 @@ import HudLayer from '../components/hud/HudLayer';
 import OperatorScene from '../components/hud/OperatorScene';
 import useClock from '../hooks/useClock';
 import useHeroFade from '../hooks/useHeroFade';
-import { profile, socials } from '../data/profileData';
+import { profile, sectionCopy, socials } from '../data/profileData';
 import { projectsData } from '../data/projectsData';
 import { awards, education, experience, volunteering } from '../data/careerData';
 import { skillGroups, stack } from '../data/skillsData';
@@ -21,13 +21,19 @@ const SECTIONS = [
   { id: 'comms', short: 'COMMS' }
 ];
 
-const SectionHead = ({ num, title, aside, tight }) => (
-  <div className={`section-head${tight ? ' section-head--tight' : ''}`}>
-    <span className="section-head__num">{num}</span>
-    <h2>{title}</h2>
-    <span className="section-head__rule" />
-    {aside && <span className="section-head__aside">{aside}</span>}
-  </div>
+/* Every section carries its callsign, a plain-English gloss of that callsign,
+   and a one-line standfirst — the HUD naming should never be the only label. */
+const SectionHead = ({ num, title, gloss, desc, aside, tight }) => (
+  <>
+    <div className={`section-head${desc ? ' section-head--lead' : ''}${tight && !desc ? ' section-head--tight' : ''}`}>
+      <span className="section-head__num">{num}</span>
+      <h2>{title}</h2>
+      {gloss && <span className="section-head__gloss">{gloss}</span>}
+      <span className="section-head__rule" />
+      {aside && <span className="section-head__aside">{aside}</span>}
+    </div>
+    {desc && <p className="section-sub">{desc}</p>}
+  </>
 );
 
 const LogEntry = ({ item, status }) => (
@@ -45,11 +51,17 @@ const LogEntry = ({ item, status }) => (
 );
 
 const Home = () => {
-  const [deployed, setDeployed] = useState(false);
+  // Already deployed if we are returning to "/" from another route this session.
+  const [deployed, setDeployed] = useState(() => !!window.__operatorDeployed);
   const clock = useClock();
   const heroRef = useHeroFade();
 
   const onDeploy = useCallback(() => setDeployed(true), []);
+
+  const toTop = useCallback((e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   return (
     <div ref={heroRef}>
@@ -91,10 +103,10 @@ const Home = () => {
           <span className="hero-eyebrow__rule" />
         </div>
 
-        <div className="hero-brand" data-hero-fade>
+        <a className="hero-brand" href="#top" data-hero-fade onClick={toTop}>
           <span className="monogram">PM</span>
           <span className="hero-brand__name">{profile.name}</span>
-        </div>
+        </a>
 
         <div className="hero-status" data-hero-fade>
           <span className="pip" aria-hidden="true" />
@@ -114,8 +126,8 @@ const Home = () => {
             ))}
           </div>
           <div className="hero-copy__actions">
-            <a href="#loadout" className="btn btn-primary">
-              View loadout <span aria-hidden="true">&#8594;</span>
+            <a href="#profile" className="btn btn-primary">
+              View operator profile <span aria-hidden="true">&#8594;</span>
             </a>
             <a href={profile.resume} target="_blank" rel="noreferrer" className="btn-ghost">RESUME</a>
           </div>
@@ -129,7 +141,7 @@ const Home = () => {
 
       {/* --------------------------------------------------------- 01 profile */}
       <section id="profile" className="panel panel--flush" data-screen-label="Profile">
-        <SectionHead num="01" title="Operator Profile" />
+        <SectionHead num="01" title="Operator Profile" gloss={sectionCopy.profile.plain} desc={sectionCopy.profile.desc} />
         <div className="profile-grid">
           <div>
             <p className="profile__lede">{profile.lede}</p>
@@ -156,16 +168,24 @@ const Home = () => {
       {/* ------------------------------------------------------------- 02 log */}
       <section id="log" className="panel panel--banded" data-screen-label="Mission log">
         <div className="panel__inner">
-          <SectionHead num="02" title="Mission Log" aside={`${experience.length} TOURS`} />
+          <SectionHead
+            num="02"
+            title="Mission Log"
+            gloss={sectionCopy.log.plain}
+            desc={sectionCopy.log.desc}
+            aside={`${experience.length} TOURS`}
+          />
           <div className="stack-list">
             {experience.map((item) => <LogEntry item={item} key={item.id} />)}
           </div>
 
-          <div className="section-head" style={{ marginTop: 72 }}>
+          <div className="section-head section-head--lead" style={{ marginTop: 72 }}>
             <span className="section-head__num">02.1</span>
             <h2>Training</h2>
+            <span className="section-head__gloss">{sectionCopy.training.plain}</span>
             <span className="section-head__rule" />
           </div>
+          <p className="section-sub">{sectionCopy.training.desc}</p>
           <div className="stack-list">
             {education.map((item) => <LogEntry item={item} key={item.id} />)}
           </div>
@@ -174,10 +194,13 @@ const Home = () => {
 
       {/* --------------------------------------------------------- 03 loadout */}
       <section id="loadout" className="panel panel--flush" data-screen-label="Loadout">
-        <SectionHead num="03" title="Loadout" aside={`${String(projectsData.length).padStart(2, '0')} SLOTS`} tight />
-        <p className="section-note">
-          Shipped work &mdash; hackathon builds, research systems and hardware. Open a slot for the full brief.
-        </p>
+        <SectionHead
+          num="03"
+          title="Loadout"
+          gloss={sectionCopy.loadout.plain}
+          desc={sectionCopy.loadout.desc}
+          aside={`${String(projectsData.length).padStart(2, '0')} SLOTS`}
+        />
         <div className="loadout">
           {projectsData.map((p, i) => (
             <article className="frame slot" key={p.id}>
@@ -187,12 +210,18 @@ const Home = () => {
                 <span>SLOT {String(i + 1).padStart(2, '0')}</span>
                 <span className="frame__class">{p.category.toUpperCase()}</span>
               </div>
-              <div
-                className="slot__media"
-                style={{ backgroundImage: `url(${p.image})`, backgroundSize: p.imageFit || 'contain' }}
-                role="img"
-                aria-label={p.title}
-              />
+              {p.image ? (
+                <div
+                  className="slot__media"
+                  style={{ backgroundImage: `url(${p.image})`, backgroundSize: p.imageFit || 'contain' }}
+                  role="img"
+                  aria-label={p.title}
+                />
+              ) : (
+                <div className="slot__media slot__media--empty" aria-hidden="true">
+                  <span>NO VISUAL FEED</span>
+                </div>
+              )}
               <h3 className="slot__name">{p.title}</h3>
               <p className="slot__desc">{p.description}</p>
               <div className="slot__event">{p.event} &middot; {p.date}</div>
@@ -201,6 +230,9 @@ const Home = () => {
               </div>
               <div className="slot__links">
                 <Link to={`/projects/${p.id}`}>CASE STUDY &#8594;</Link>
+                {p.repo && (
+                  <a href={p.repo} target="_blank" rel="noreferrer" className="link-muted">SOURCE &#8599;</a>
+                )}
               </div>
             </article>
           ))}
@@ -210,7 +242,7 @@ const Home = () => {
       {/* ----------------------------------------------------------- 04 stats */}
       <section id="stats" className="panel panel--banded" data-screen-label="Stat sheet">
         <div className="panel__inner">
-          <SectionHead num="04" title="Stat Sheet" />
+          <SectionHead num="04" title="Stat Sheet" gloss={sectionCopy.stats.plain} desc={sectionCopy.stats.desc} />
           <div className="stats-grid">
             {skillGroups.map((group) => (
               <div className="stats__col" key={group.label}>
@@ -245,8 +277,13 @@ const Home = () => {
 
       {/* --------------------------------------------------- 05 commendations */}
       <section id="commendations" className="panel panel--flush" data-screen-label="Commendations">
-        <SectionHead num="05" title="Commendations" aside={`${String(awards.length).padStart(2, '0')} CITATIONS`} tight />
-        <p className="section-note">Competition wins and recognitions picked up along the way.</p>
+        <SectionHead
+          num="05"
+          title="Commendations"
+          gloss={sectionCopy.commendations.plain}
+          desc={sectionCopy.commendations.desc}
+          aside={`${String(awards.length).padStart(2, '0')} CITATIONS`}
+        />
         <div className="awards-grid">
           {awards.map((a) => (
             <article className="frame" key={a.id}>
@@ -268,10 +305,7 @@ const Home = () => {
       {/* --------------------------------------------------- 06 field service */}
       <section id="field" className="panel panel--banded" data-screen-label="Field service">
         <div className="panel__inner">
-          <SectionHead num="06" title="Field Service" />
-          <p className="section-note">
-            Volunteering is not only an important part of my life, it also shapes how I work.
-          </p>
+          <SectionHead num="06" title="Field Service" gloss={sectionCopy.field.plain} desc={sectionCopy.field.desc} />
           <div className="stack-list">
             {volunteering.map((item) => <LogEntry item={item} status="SERVED" key={item.id} />)}
           </div>
@@ -280,7 +314,7 @@ const Home = () => {
 
       {/* ----------------------------------------------------------- 07 comms */}
       <section id="comms" className="panel panel--flush" data-screen-label="Comms">
-        <SectionHead num="07" title="Comms" />
+        <SectionHead num="07" title="Comms" gloss={sectionCopy.comms.plain} desc={sectionCopy.comms.desc} />
         <div className="comms-grid">
           <div>
             <p className="comms__pitch">Got something<br />worth building?</p>
@@ -289,7 +323,7 @@ const Home = () => {
             </a>
             <div className="comms__actions">
               <Link to="/contact" className="btn btn-primary">Open a channel</Link>
-              <Link to="/blog" className="btn btn-secondary">Read the log</Link>
+              <Link to="/blog" className="btn btn-secondary">Read the blog</Link>
             </div>
           </div>
           <div className="links">
@@ -300,7 +334,6 @@ const Home = () => {
                 href={s.href}
                 target="_blank"
                 rel="noreferrer"
-                {...(s.download ? { download: true } : {})}
               >
                 {s.label} <span aria-hidden="true">{s.glyph}</span>
               </a>

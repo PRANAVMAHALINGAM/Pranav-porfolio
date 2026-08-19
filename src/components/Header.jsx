@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Linkedin, Github, FileDown, Menu, X } from 'lucide-react';
+import { Linkedin, Github, FileText, Menu, X } from 'lucide-react';
 import { profile } from '../data/profileData';
 import './Header.css';
 
@@ -65,7 +65,7 @@ const Header = () => {
         <div className="site-header__socials">
           <a href="https://www.linkedin.com/in/pranav-mahalingam/" aria-label="LinkedIn" target="_blank" rel="noreferrer"><Linkedin size={16} /></a>
           <a href="https://github.com/PRANAVMAHALINGAM" aria-label="GitHub" target="_blank" rel="noreferrer"><Github size={16} /></a>
-          <a href={profile.resume} aria-label="Resume" target="_blank" rel="noreferrer" download><FileDown size={16} /></a>
+          <a href={profile.resume} aria-label="Open resume" target="_blank" rel="noreferrer"><FileText size={16} /></a>
         </div>
         <button
           className="site-header__menu"

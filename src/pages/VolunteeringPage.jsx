@@ -1,20 +1,22 @@
 import { motion } from 'framer-motion';
 import InnerHero from '../components/InnerHero';
 import { volunteering } from '../data/careerData';
+import { sectionCopy } from '../data/profileData';
 
 const VolunteeringPage = () => (
   <div className="inner-page-wrapper">
     <InnerHero
       num="06"
-      eyebrow="FIELD SERVICE"
+      eyebrow="FIELD SERVICE · VOLUNTEERING"
       title="Volunteering"
-      desc="Volunteering is not only an important part of my life, it also plays a big role in my personal philosophy."
+      desc={sectionCopy.field.desc}
     />
 
     <section className="panel panel--flush">
       <div className="section-head">
         <span className="section-head__num">06</span>
         <h2>Service record</h2>
+        <span className="section-head__gloss">{sectionCopy.field.plain}</span>
         <span className="section-head__rule" />
       </div>
       <motion.div

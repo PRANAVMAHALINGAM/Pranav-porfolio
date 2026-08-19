@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { ExternalLink, ArrowRight } from 'lucide-react';
 import InnerHero from '../components/InnerHero';
 import { linkedinPosts } from '../data/linkedinPosts';
+import { sectionCopy } from '../data/profileData';
 
 const FALLBACK = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800';
 
@@ -18,15 +19,16 @@ const BlogPage = () => (
   <div className="inner-page-wrapper">
     <InnerHero
       num="05"
-      eyebrow="TRANSMISSIONS"
+      eyebrow="TRANSMISSIONS · BLOG"
       title="Blog"
-      desc="Field notes from hackathons, the master's, and whatever I am building this month — mirrored from LinkedIn."
+      desc={`${sectionCopy.blog.desc} Mirrored from LinkedIn.`}
     />
 
     <section className="panel panel--flush">
       <div className="section-head">
         <span className="section-head__num">05</span>
         <h2>Latest updates</h2>
+        <span className="section-head__gloss">{sectionCopy.blog.plain}</span>
         <span className="section-head__rule" />
         <span className="section-head__aside">{String(linkedinPosts.length).padStart(2, '0')} POSTS</span>
       </div>

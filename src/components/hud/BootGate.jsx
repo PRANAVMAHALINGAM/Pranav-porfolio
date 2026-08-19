@@ -18,14 +18,20 @@ const AUTO_DEPLOY_MS = 7000;
 const FADE_MS = 540;
 
 const BootGate = ({ onDeploy }) => {
+  /* The boot sequence is a first-impression, not a toll gate: once the operator
+     has deployed this session, coming back to "/" from another route skips
+     straight past it instead of replaying the whole thing. */
+  const [skipped] = useState(() => !!window.__operatorDeployed);
   const [lines, setLines] = useState([]);
   const [armed, setArmed] = useState(false);
   const [closing, setClosing] = useState(false);
-  const [gone, setGone] = useState(false);
-  const firedRef = useRef(false);
+  const [gone, setGone] = useState(skipped);
+  const firedRef = useRef(skipped);
 
   // Type the boot log out one line at a time.
   useEffect(() => {
+    if (skipped) return undefined;
+
     let i = 0;
     const id = setInterval(() => {
       if (i >= BOOT.length) {
@@ -37,11 +43,11 @@ const BootGate = ({ onDeploy }) => {
       setLines((prev) => prev.concat(line));
     }, STEP_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [skipped]);
 
   // Once armed, any input deploys — as does the 7s timeout, so nobody is stuck.
   useEffect(() => {
-    if (!armed) return undefined;
+    if (!armed || skipped) return undefined;
 
     const go = () => {
       if (firedRef.current) return;
@@ -62,7 +68,7 @@ const BootGate = ({ onDeploy }) => {
       window.removeEventListener('pointerdown', go);
       clearTimeout(auto);
     };
-  }, [armed, onDeploy]);
+  }, [armed, skipped, onDeploy]);
 
   if (gone) return null;
 

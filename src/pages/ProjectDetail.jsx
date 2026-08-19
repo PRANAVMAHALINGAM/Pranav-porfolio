@@ -30,7 +30,7 @@ const ProjectDetail = () => {
         eyebrow={project.category.toUpperCase()}
         title={project.title}
         desc={project.event}
-        image={project.image}
+        image={project.image || undefined}
       />
 
       <section className="panel panel--flush">
@@ -39,9 +39,11 @@ const ProjectDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          <div className="brief__figure">
-            <img src={project.image} alt={project.title} style={{ objectFit: project.imageFit || 'contain' }} />
-          </div>
+          {project.image && (
+            <div className="brief__figure">
+              <img src={project.image} alt={project.title} style={{ objectFit: project.imageFit || 'contain' }} />
+            </div>
+          )}
 
           <div className="brief">
             <div>
@@ -59,6 +61,12 @@ const ProjectDetail = () => {
               <div className="spec__row"><dt>CLASS</dt><dd>{project.category}</dd></div>
               <div className="spec__row"><dt>DATE</dt><dd>{project.date}</dd></div>
               <div className="spec__row"><dt>CONTEXT</dt><dd>{project.event}</dd></div>
+              {project.repo && (
+                <div className="spec__row">
+                  <dt>SOURCE</dt>
+                  <dd><a href={project.repo} target="_blank" rel="noreferrer">GITHUB &#8599;</a></dd>
+                </div>
+              )}
               <div className="spec__row" style={{ display: 'block' }}>
                 <dt style={{ marginBottom: 12 }}>STACK</dt>
                 <dd style={{ textAlign: 'left' }}>
@@ -72,6 +80,11 @@ const ProjectDetail = () => {
 
           <div style={{ marginTop: 72, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
             <Link to="/projects" className="btn btn-secondary">&#8592; All slots</Link>
+            {project.repo && (
+              <a href={project.repo} target="_blank" rel="noreferrer" className="btn btn-secondary">
+                View source &#8599;
+              </a>
+            )}
             <Link to="/contact" className="btn btn-primary">Ask about this build</Link>
           </div>
         </motion.div>

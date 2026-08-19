@@ -16,7 +16,8 @@ npm run lint
 `/` is a single scrolling HUD rather than a stack of marketing sections:
 
 1. A terminal **boot gate** types out a status log, then waits for any key
-   (or 7 seconds) before deploying.
+   (or 7 seconds) before deploying. It runs once per session — returning to `/`
+   from another route skips straight past it.
 2. Deploying dispatches `operator:deploy`, which tells `<operator-scene>` to
    assemble a playable third-person operator in a dark hangar —
    **WASD** move, **mouse** aim, **click** fire, **R** reload.
@@ -56,6 +57,10 @@ src/
 ```
 
 Editing content means editing `src/data/` — the components read from it.
+`sectionCopy` in `profileData.js` holds the plain-English gloss for every HUD
+callsign ("Commendations / Awards"), used by both the home sections and the
+matching routes. A project only renders a SOURCE link when it has a `repo`, and
+falls back to a hatched placeholder when it has no `image`.
 
 ## Missing 3D assets
 

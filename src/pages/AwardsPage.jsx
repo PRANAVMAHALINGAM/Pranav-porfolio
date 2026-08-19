@@ -1,20 +1,22 @@
 import { motion } from 'framer-motion';
 import InnerHero from '../components/InnerHero';
 import { awards } from '../data/careerData';
+import { sectionCopy } from '../data/profileData';
 
 const AwardsPage = () => (
   <div className="inner-page-wrapper">
     <InnerHero
       num="04"
-      eyebrow="COMMENDATIONS"
+      eyebrow="COMMENDATIONS · AWARDS"
       title="Awards &amp; recognitions"
-      desc="Competition wins and recognitions picked up along the way."
+      desc={sectionCopy.commendations.desc}
     />
 
     <section className="panel panel--flush">
       <div className="section-head">
         <span className="section-head__num">04</span>
         <h2>Citations</h2>
+        <span className="section-head__gloss">{sectionCopy.commendations.plain}</span>
         <span className="section-head__rule" />
         <span className="section-head__aside">{String(awards.length).padStart(2, '0')} TOTAL</span>
       </div>

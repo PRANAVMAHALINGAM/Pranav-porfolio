@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import InnerHero from '../components/InnerHero';
-import { profile } from '../data/profileData';
+import { profile, sectionCopy } from '../data/profileData';
 import { education } from '../data/careerData';
 
 const fade = {
@@ -12,7 +13,7 @@ const fade = {
 
 const About = () => (
   <div className="inner-page-wrapper">
-    <InnerHero num="02" eyebrow="DOSSIER" title="About me" desc={profile.lede} />
+    <InnerHero num="02" eyebrow="DOSSIER · ABOUT ME" title="About me" desc={sectionCopy.profile.desc} />
 
     <section className="panel panel--flush">
       <motion.div className="dossier" {...fade}>
@@ -22,8 +23,10 @@ const About = () => (
             <p className="dossier__body" key={para.slice(0, 32)}>{para}</p>
           ))}
           <div className="dossier__actions">
-            <a href={profile.resume} target="_blank" rel="noreferrer" className="btn btn-primary">View resume</a>
-            <a href={profile.resume} download className="btn btn-secondary">Download resume</a>
+            <a href={profile.resume} target="_blank" rel="noreferrer" className="btn btn-primary">
+              Open resume &#8599;
+            </a>
+            <Link to="/contact" className="btn btn-secondary">Get in touch</Link>
           </div>
         </div>
         <dl className="spec">
@@ -43,8 +46,10 @@ const About = () => (
         <div className="section-head">
           <span className="section-head__num">02.1</span>
           <h2>Expertise</h2>
+          <span className="section-head__gloss">What I do</span>
           <span className="section-head__rule" />
         </div>
+        <p className="section-sub">The work I get hired for, in five lines.</p>
         <motion.div className="grid-3" {...fade}>
           {profile.expertise.map((s) => (
             <article className="frame" key={s.title}>
@@ -62,8 +67,10 @@ const About = () => (
       <div className="section-head">
         <span className="section-head__num">02.2</span>
         <h2>Training</h2>
+        <span className="section-head__gloss">{sectionCopy.training.plain}</span>
         <span className="section-head__rule" />
       </div>
+      <p className="section-sub">{sectionCopy.training.desc}</p>
       <motion.div className="stack-list" {...fade}>
         {education.map((item) => (
           <article className="entry" key={item.id}>

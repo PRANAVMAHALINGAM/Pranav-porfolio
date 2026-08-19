@@ -9,7 +9,9 @@ const ScrollToTop = () => {
 
   useEffect(() => {
     if (hash) return;
-    window.scrollTo(0, 0);
+    // 'instant' overrides the global `scroll-behavior: smooth`, which would
+    // otherwise animate a whole page's worth of scroll on every navigation.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [pathname, hash]);
 
   return null;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import InnerHero from '../components/InnerHero';
-import { profile, socials } from '../data/profileData';
+import { profile, sectionCopy, socials } from '../data/profileData';
 
 const ACCESS_KEY = '322c7d8e-d4f9-45f1-ac1c-271199c65006';
 
@@ -35,9 +35,9 @@ const ContactPage = () => {
     <div className="inner-page-wrapper">
       <InnerHero
         num="07"
-        eyebrow="COMMS"
+        eyebrow="COMMS · CONTACT"
         title="Contact me"
-        desc="Open a channel — hiring, collaboration, or just to compare notes on shipping AI."
+        desc={`${sectionCopy.comms.desc} Hiring, collaboration, or just comparing notes on shipping AI.`}
       />
 
       <section className="panel panel--flush">
@@ -63,7 +63,7 @@ const ContactPage = () => {
               <a className="channel__value" href={`mailto:${profile.email}`}>{profile.email}</a>
             </div>
             <div className="channel">
-              <span className="channel__label">ACADEMIC</span>
+              <span className="channel__label">PERSONAL</span>
               <a className="channel__value" href={`mailto:${profile.emailAlt}`}>{profile.emailAlt}</a>
             </div>
             <div className="channel">
@@ -71,6 +71,10 @@ const ContactPage = () => {
               <span className="channel__value" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span className="pip" aria-hidden="true" /> {profile.status}
               </span>
+            </div>
+            <div className="channel">
+              <span className="channel__label">WORK AUTHORISATION</span>
+              <span className="channel__value">{profile.workAuth}</span>
             </div>
 
             <div className="links" style={{ marginTop: 34 }}>
@@ -81,7 +85,6 @@ const ContactPage = () => {
                   href={s.href}
                   target="_blank"
                   rel="noreferrer"
-                  {...(s.download ? { download: true } : {})}
                 >
                   {s.label} <span aria-hidden="true">{s.glyph}</span>
                 </a>

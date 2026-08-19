@@ -5,9 +5,10 @@ export const profile = {
   role: 'AI Software Engineer',
   tagline: 'AI SYSTEMS',
   status: 'OPEN TO WORK',
+  workAuth: 'H1B sponsorship required',
   location: 'Ann Arbor, MI',
-  email: 'mpranavmahalingam@gmail.com',
-  emailAlt: 'mpranavm@umich.edu',
+  email: 'mpranavm@umich.edu',
+  emailAlt: 'mpranavmahalingam@gmail.com',
   resume: '/Pranav_Software_Engineer_Resume.pdf',
   portrait: '/profile.jpg',
 
@@ -28,7 +29,7 @@ export const profile = {
     { label: 'DOMAIN', value: 'AI, Vision & IoT' },
     { label: 'EDUCATION', value: 'MS CSE — Michigan' },
     { label: 'LOCATION', value: 'Ann Arbor, MI' },
-    { label: 'CLEARANCE', value: 'Open to work' }
+    { label: 'CLEARANCE', value: 'Open to work (H1B sponsorship required)' }
   ],
 
   // Rendered as the hero readout and the stat-sheet counters.
@@ -50,6 +51,49 @@ export const profile = {
 export const socials = [
   { label: 'LINKEDIN', href: 'https://www.linkedin.com/in/pranav-mahalingam/', icon: 'linkedin', glyph: '↗' },
   { label: 'GITHUB', href: 'https://github.com/PRANAVMAHALINGAM', icon: 'github', glyph: '↗' },
-  { label: 'EMAIL', href: 'mailto:mpranavmahalingam@gmail.com', icon: 'mail', glyph: '↗' },
-  { label: 'RESUME PDF', href: '/Pranav_Software_Engineer_Resume.pdf', icon: 'resume', glyph: '↓', download: true }
+  { label: 'EMAIL', href: 'mailto:mpranavm@umich.edu', icon: 'mail', glyph: '↗' },
+  { label: 'RESUME PDF', href: '/Pranav_Software_Engineer_Resume.pdf', icon: 'resume', glyph: '↗' }
 ];
+
+/* Plain-English gloss for every HUD section name, so the callsigns are never
+   the only label a reader gets. `plain` is the short translation shown next to
+   the section number; `desc` is the one-line standfirst under it. Keyed by the
+   home page's section id, and reused as the standfirst on the matching route. */
+export const sectionCopy = {
+  profile: {
+    plain: 'About me',
+    desc: 'Who I am, what I build, and the stack I reach for first.'
+  },
+  log: {
+    plain: 'My experience',
+    desc: 'Where I have worked and what I shipped there.'
+  },
+  training: {
+    plain: 'Education',
+    desc: 'Degrees and the institutions behind them.'
+  },
+  loadout: {
+    plain: 'Projects',
+    desc: 'Shipped work — hackathon builds, research systems and hardware. Open a slot for the full brief.'
+  },
+  stats: {
+    plain: 'Technical skills',
+    desc: 'Languages, AI and systems work, rated by how often I actually reach for them.'
+  },
+  commendations: {
+    plain: 'Awards',
+    desc: 'Competition wins and recognitions picked up along the way.'
+  },
+  field: {
+    plain: 'Volunteering',
+    desc: 'Community work — clubs I have led and causes I keep showing up for.'
+  },
+  comms: {
+    plain: 'Contact',
+    desc: 'How to reach me, and where else I post.'
+  },
+  blog: {
+    plain: 'Blog',
+    desc: 'Field notes from hackathons, the master’s, and whatever I am building this month.'
+  }
+};
