@@ -37,7 +37,8 @@ public/blog/            post images, pulled once from LinkedIn (see below)
 public/scene/
   operator-scene.js     WebGL custom element (vendored — excluded from lint)
   bonemap.json          proxy-rig → Rigify bone mapping
-  operator-rigged.glb   the operator (Mixamo rig, rifle included)
+  operator-rigged.glb   the operator (Rigify rig, rest pose)
+  czbren2.glb           the CZ Bren, extracted from the posed export
 
 src/
   data/                 all copy lives here, not in components
@@ -92,8 +93,27 @@ A bonemap may also carry three optional keys:
 Swapping in a different rig means replacing the GLB and rewriting `bones` — no
 code change, as long as the 16 roles can be named and the export is in rest pose.
 
-The rifle is the scene's procedural block-out unless `czbren2.glb` is present
-in `public/scene/`, or the model brings its own via the `weapon` key.
+### The rifle
+
+Without `czbren2.glb` the scene draws a grey block-out placeholder — the shape
+its hand IK was tuned against, never meant to be seen. The real CZ Bren was
+extracted from `operator_posed.glb` (which carries it parented to the right
+hand) with `tools/extract_rifle.py`, a Blender headless script that normalises
+it to the convention `loadWeapon` expects:
+
+    length 4.627 along +Z, muzzle tip at +Z 2.298, origin at the rifle's centre
+
+It also renames the materials so the scene's prefix matcher picks sensible ones
+(`glass*` becomes the emissive lens, `grip|stock|mag*` dark polymer, and so on).
+Re-run it if the weapon model changes:
+
+```bash
+blender --background --python tools/extract_rifle.py -- in.glb out.glb render=preview.png
+```
+
+The `render=` argument is optional and writes a side-on preview, which is how
+the roll orientation gets checked — geometry alone can't tell you which way is
+up.
 
 If the GLB fails to load, `attachRigged()` bails and the scene falls back to its
 procedural proxy rig, a fully jointed IK-solved character built in code.
