@@ -1,0 +1,19 @@
+import { useEffect, useState } from 'react';
+
+/* Ticking HH:MM:SS readout for the hero status line. */
+export default function useClock() {
+  const [clock, setClock] = useState('00:00:00');
+
+  useEffect(() => {
+    const pad = (n) => String(n).padStart(2, '0');
+    const tick = () => {
+      const d = new Date();
+      setClock(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return clock;
+}

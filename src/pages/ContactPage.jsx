@@ -1,112 +1,128 @@
-import React, { useState } from 'react';
-import { Mail, Linkedin, FileDown } from 'lucide-react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import './ContactPage.css';
+import InnerHero from '../components/InnerHero';
+import { profile, sectionCopy, socials } from '../data/profileData';
+
+const ACCESS_KEY = '322c7d8e-d4f9-45f1-ac1c-271199c65006';
 
 const ContactPage = () => {
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState('');
 
   const onSubmit = async (event) => {
     event.preventDefault();
-    setResult("Sending....");
+    setResult('Sending....');
+
     const formData = new FormData(event.target);
+    formData.append('access_key', ACCESS_KEY);
 
-    // Replace with your Web3Forms Access Key
-    formData.append("access_key", "322c7d8e-d4f9-45f1-ac1c-271199c65006");
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
+      const data = await response.json();
 
-    const response = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      setResult("Message sent successfully!");
-      event.target.reset();
-      setTimeout(() => setResult(''), 5000); // clear after 5 secs
-    } else {
-      console.log("Error", data);
-      setResult(data.message);
+      if (data.success) {
+        setResult('Message sent successfully!');
+        event.target.reset();
+        setTimeout(() => setResult(''), 5000);
+      } else {
+        setResult(data.message || 'Something went wrong. Try email instead.');
+      }
+    } catch {
+      setResult('Network error. Try email instead.');
     }
   };
 
   return (
     <div className="inner-page-wrapper">
-      <section className="inner-hero contact-hero">
-        <motion.div 
-          className="container inner-hero-grid"
-          initial={{ opacity: 0, y: 30 }}
+      <InnerHero
+        num="07"
+        eyebrow="COMMS · CONTACT"
+        title="Contact me"
+        desc={`${sectionCopy.comms.desc} Hiring, collaboration, or just comparing notes on shipping AI.`}
+      />
+
+      <section className="panel panel--flush">
+        <motion.div
+          className="comms-split"
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          <div className="inner-hero-content">
-            <h1 className="inner-hero-title">CONTACT ME</h1>
-            <svg width="220" height="20" viewBox="0 0 220 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="inner-hero-squiggle">
-              <path d="M2.5 13.5C22.5 3.5 37.5 16 57 16C76.5 16 90.5 5.5 110.5 7C130.5 8.5 145 13.5 167 11.5C189 9.5 204.5 12.5 217.5 12.5" stroke="var(--color-yellow)" strokeWidth="5" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div className="inner-hero-image-wrap">
-            <img src="/profile.jpg" alt="Pranav Mahalingam" className="inner-hero-image" />
-          </div>
-        </motion.div>
-      </section>
-
-      <section className="contact-info-form section">
-        <div className="container contact-split">
-
-          {/* Info Side */}
-          <div className="contact-info-side">
-            <div className="info-block">
-              <div className="info-icon">📍</div>
-              <div>
-                <h4 className="info-title">Location</h4>
-                <p className="info-text">Ann Arbor, MI<br />United States</p>
-              </div>
+          <div>
+            <div className="section-head">
+              <span className="section-head__num">07.1</span>
+              <h2>Channels</h2>
+              <span className="section-head__rule" />
             </div>
-            <div className="info-block" style={{ marginTop: '3rem' }}>
-              <div className="info-icon">📲</div>
-              <div>
-                <h4 className="info-title">Contact & Socials</h4>
-                <div className="contact-social-icons">
-                  <a href="mailto:mpranavm@umich.edu" aria-label="Mail" target="_blank" rel="noreferrer"><Mail size={24} /></a>
-                  <a href="https://www.linkedin.com/in/pranav-mahalingam/" aria-label="LinkedIn" target="_blank" rel="noreferrer"><Linkedin size={24} /></a>
-                  <a href="/Pranav_Software_Engineer_Resume.pdf" aria-label="Resume" target="_blank" rel="noreferrer" download="Pranav_Software_Engineer_Resume.pdf"><FileDown size={24} /></a>
-                </div>
-              </div>
+
+            <div className="channel">
+              <span className="channel__label">LOCATION</span>
+              <span className="channel__value">{profile.location}, United States</span>
+            </div>
+            <div className="channel">
+              <span className="channel__label">PRIMARY</span>
+              <a className="channel__value" href={`mailto:${profile.email}`}>{profile.email}</a>
+            </div>
+            <div className="channel">
+              <span className="channel__label">PERSONAL</span>
+              <a className="channel__value" href={`mailto:${profile.emailAlt}`}>{profile.emailAlt}</a>
+            </div>
+            <div className="channel">
+              <span className="channel__label">STATUS</span>
+              <span className="channel__value" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="pip" aria-hidden="true" /> {profile.status}
+              </span>
+            </div>
+            <div className="channel">
+              <span className="channel__label">WORK AUTHORISATION</span>
+              <span className="channel__value">{profile.workAuth}</span>
+            </div>
+
+            <div className="links" style={{ marginTop: 34 }}>
+              {socials.map((s) => (
+                <a
+                  className="links__item"
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {s.label} <span aria-hidden="true">{s.glyph}</span>
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Form Side */}
-          <div className="contact-form-side">
-            <h2 className="form-heading">LET'S TALK</h2>
-            <p className="form-desc">Fill out the form below and I will get back to you as soon as possible.</p>
+          <div>
+            <div className="section-head">
+              <span className="section-head__num">07.2</span>
+              <h2>Send a message</h2>
+              <span className="section-head__rule" />
+            </div>
 
-            <form className="contact-form" onSubmit={onSubmit}>
-              <div className="form-group">
-                <label>Your Name *</label>
-                <input type="text" name="name" placeholder="John Doe" required />
+            <form onSubmit={onSubmit}>
+              <div className="field">
+                <label htmlFor="name">Your name *</label>
+                <input id="name" type="text" name="name" placeholder="John Doe" required />
               </div>
-              <div className="form-group">
-                <label>Your Email *</label>
-                <input type="email" name="email" placeholder="john@email.com" required />
+              <div className="field">
+                <label htmlFor="email">Your email *</label>
+                <input id="email" type="email" name="email" placeholder="john@email.com" required />
               </div>
-              <div className="form-group">
-                <label>The purpose for contacting me *</label>
-                <textarea name="message" placeholder="I would like to discuss..." rows="6" required></textarea>
+              <div className="field">
+                <label htmlFor="message">Purpose for contacting me *</label>
+                <textarea id="message" name="message" rows="6" placeholder="I would like to discuss..." required />
               </div>
 
-              <button type="submit" className="btn btn-primary submit-btn">Submit</button>
+              <button type="submit" className="btn btn-primary">Transmit</button>
 
               {result && (
-                <div className={`form-result ${result.includes('success') ? 'success' : 'pending'}`}>
+                <div className={`form-result ${result.includes('success') ? 'success' : 'pending'}`} role="status">
                   {result}
                 </div>
               )}
             </form>
           </div>
-
-        </div>
+        </motion.div>
       </section>
     </div>
   );

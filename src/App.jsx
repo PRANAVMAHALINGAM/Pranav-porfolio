@@ -1,6 +1,7 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
+import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import About from './pages/About';
 import ProjectsPage from './pages/ProjectsPage';
@@ -15,6 +16,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Header />
       <main>
         <Routes>
@@ -28,6 +30,7 @@ function App() {
           <Route path="/volunteering" element={<VolunteeringPage />} />
         </Routes>
       </main>
+      <Footer />
       <Analytics />
       <SpeedInsights />
     </Router>

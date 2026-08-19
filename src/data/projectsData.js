@@ -1,3 +1,6 @@
+// Project slots. Shared by the home loadout, /projects and /projects/:id.
+// `repo` is optional — cards only render a SOURCE link when one is present.
+
 export const projectsData = [
   {
     id: 'budgetbruh',
@@ -11,15 +14,26 @@ export const projectsData = [
     imageFit: 'contain'
   },
   {
+    id: 'memhub',
+    title: 'MemHub',
+    category: 'Agentic AI / Systems',
+    date: 'May 2026',
+    description: 'Centralized memory-as-a-service for multi-agent systems: a two-tier shared store for AutoGen and LangGraph agent teams, pairing SQLite working memory with a ChromaDB long-term tier, plus automatic eviction, promotion and LLM-based summarisation policies.',
+    technologies: ['Python', 'FastAPI', 'ChromaDB', 'AutoGen', 'SQLite'],
+    event: 'CSE 585: Advanced Scalable Systems for Agentic AI, University of Michigan',
+    repo: 'https://github.com/PRANAVMAHALINGAM/memhub'
+  },
+  {
     id: 'git-landscaper',
-    title: 'Git-Landscaper',
+    title: 'RepoRanger',
     category: 'Open Source / GitHub',
     date: 'Jan 2026',
-    description: 'Developed a GitHub extension to automate repository organization by identifying and removing dead branches, significantly improving version control hygiene for users.',
-    technologies: ['GitHub API', 'Node.js', 'Git'],
+    description: 'A privacy-first GitHub App that pairs AI code review with automated branch hygiene. It runs entirely on your own GitHub Actions runners through a dispatcher-worker relay, so source and secrets never leave your environment.',
+    technologies: ['GitHub API', 'Node.js', 'Groq', 'Vercel'],
     event: 'Open Source Innovation, University of Michigan',
-    image: '/git-landscaper.png',
-    imageFit: 'contain'
+    image: '/repo-ranger.webp',
+    imageFit: 'contain',
+    repo: 'https://github.com/PRANAVMAHALINGAM/repo-ranger'
   },
   {
     id: 'git-hired',
@@ -30,7 +44,8 @@ export const projectsData = [
     technologies: ['Agentic AI', 'LLM', 'Python Core'],
     event: 'Best Project – Claude Builders Club Hackathon',
     image: '/githired.jpg',
-    imageFit: 'cover'
+    imageFit: 'cover',
+    repo: 'https://github.com/PRANAVMAHALINGAM/git-hired'
   },
   {
     id: 'mcq-generation',
@@ -65,4 +80,13 @@ export const projectsData = [
     image: '/RAKSHA.png',
     imageFit: 'cover'
   }
+];
+
+/* The home loadout is a highlight reel: only work with public source on it. */
+export const openSourceProjects = projectsData.filter((p) => p.repo);
+
+/* The index shows everything, but leads with the projects you can go read. */
+export const projectsByRepoFirst = [
+  ...projectsData.filter((p) => p.repo),
+  ...projectsData.filter((p) => !p.repo)
 ];
