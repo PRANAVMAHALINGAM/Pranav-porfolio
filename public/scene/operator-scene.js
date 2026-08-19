@@ -277,9 +277,20 @@
            with an authored elbow pole, the weapon is then fitted between the two hands, and
            nothing is solved again for the life of the page. Targets are chosen to sit inside
            each arm's reach (0.515 m), so no arm is ever driven to full extension. */
+        /* Shouldered stance, in chest space (+y up, +z forward). Measured against
+           this rig: shoulders sit at (+-0.183, 0.112, -0.016) and each arm reaches
+           0.453 before the solver clamps it.
+
+           `R.at` is the trigger hand, just below and in front of the right
+           shoulder, so the butt lands in the pocket rather than out at the belly.
+           `L.at` only has to set the barrel line — the support hand is re-solved
+           onto the real foregrip straight afterwards — so it sits one grip-spacing
+           (0.282) further along a barrel raked 38 degrees across the body. Raking
+           it is what keeps the support hand inside arm's reach; aimYawOffset yaws
+           the whole body to put the muzzle back on the cursor. */
         const STANCE = {
-          R: { at: [-0.030, -0.205, 0.100], pole: [-0.35, -1, -0.25] },
-          L: { at: [0.030, -0.222, 0.258], pole: [0.45, -1, 0.10] }
+          R: { at: [-0.085, 0.030, 0.165], pole: [-0.45, -1, -0.20] },
+          L: { at: [0.090, 0.034, 0.386], pole: [0.25, -1, 0.05] }
         };
         (function poseArms() {
           const chestQ = wq(real.chest);
@@ -557,8 +568,11 @@
   }
 
   /* two-bone IK: puts the hand exactly on a target expressed in chest space */
+  /* Where each hand sits in weapon space. Measured off the CZ Bren: the pistol
+     grip 0.150 behind the rifle's centre, the vertical foregrip 0.132 ahead of
+     it, both a little under the barrel line. */
   const GRIP_R = { x: 0, y: -0.048, z: -0.150 };
-  const GRIP_L = { x: 0, y: -0.044, z: 0.020 };
+  const GRIP_L = { x: 0, y: -0.044, z: 0.132 };
   /* wrist frames in weapon space: dir runs from the wrist down through the fingers,
      palm is the direction the palm faces. The pistol grip rakes back, the vertical
      foregrip hangs straight down, and the two palms oppose each other. */
