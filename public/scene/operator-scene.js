@@ -43,6 +43,11 @@
 
   const SPEED = { calm: 0.6, standard: 1, aggressive: 1.6 };
 
+  /* How the bladed stance is framed. 1 squares the shoulders to the camera so he
+     reads as facing the viewer; 0 turns him until the muzzle points at the
+     cursor, leaving him in profile. Anything between is a partial turn. */
+  const FACE_FRONT = 1;
+
   /* GLTFLoader sanitizes node names, so "mixamorig:Hips" arrives as
      "mixamorigHips" and "DEF-spine.003" as "DEF-spine003". */
   const bkey = (s) => String(s).replace(/\s/g, '_').replace(/[.:/[\]]/g, '');
@@ -85,8 +90,29 @@
         rig.root.add(model);
         model.updateMatrixWorld(true);
 
+        /* Turn him to face the camera. The export can point anywhere, and this
+           has to be baked in rather than left to the aim channel: aim yaw is
+           clamped to +-1.1rad, so it can correct a few degrees of framing but
+           never a half-turn — that is what left him stuck in profile.
+
+           "Facing front" means the shoulder line runs across the screen. A
+           character facing +Z with +Y up has their left hand on +X, so rotate
+           until the right-to-left shoulder vector lands there. */
+        const shoulderL = find('shoulderL') || find('thighL');
+        const shoulderR = find('shoulderR') || find('thighR');
+        let bodyYaw = 0;
+        if (shoulderL && shoulderR) {
+          const across = shoulderL.getWorldPosition(new T.Vector3())
+            .sub(shoulderR.getWorldPosition(new T.Vector3()))
+            .setY(0).normalize();
+          bodyYaw = Math.atan2(across.x, across.z) - Math.PI / 2;
+          model.rotation.y -= bodyYaw;
+          model.updateMatrixWorld(true);
+        }
+
         /* Stand him on the floor and centre him over the root, so root.position
-           is the character's own position and the marker ring lands under him. */
+           is the character's own position and the marker ring lands under him.
+           Measured after the turn, or the offset would be rotated out of place. */
         const box = new T.Box3().setFromObject(model);
         const mid = box.getCenter(new T.Vector3());
         model.position.x -= mid.x;
@@ -165,14 +191,16 @@
           });
         });
 
-        /* The stance is bladed, so the barrel does not run down the body's own
-           forward. Record that angle once: the tick yaws by (aim - offset), which
-           points the MUZZLE at the cursor rather than the sternum. */
+        /* The stance is bladed: the barrel does not run down the body's own
+           forward, so the two cannot both point at the camera. FACE_FRONT picks
+           where on that trade-off to sit — 1 keeps the shoulders square to the
+           viewer (what a hero shot wants), 0 swings the body until the muzzle
+           tracks the cursor exactly (what a shooter wants). */
         rig.root.updateMatrixWorld(true);
         if (rig.muzzle.parent) {
           const d = new T.Vector3(0, 0, -1)
             .applyQuaternion(rig.muzzle.getWorldQuaternion(new T.Quaternion()));
-          rig.aimYawOffset = Math.atan2(d.x, d.z);
+          rig.aimYawOffset = Math.atan2(d.x, d.z) * (1 - FACE_FRONT);
         }
 
         rig.ready = true;

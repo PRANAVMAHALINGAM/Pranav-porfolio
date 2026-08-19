@@ -96,6 +96,17 @@ the model on the floor from its own bounding box, derives the barrel direction
 from the muzzle marker, and records the angle between the barrel and the body so
 aiming points the muzzle at the cursor rather than the sternum.
 
+On load it also turns him to face the camera, by rotating until the shoulder
+line runs across the screen. This has to be baked in rather than left to the aim
+channel: aim yaw is clamped to ±1.1 rad, so it can nudge the framing but never
+apply a half-turn, which is what previously left him stuck in profile.
+
+The stance is bladed, so the shoulders and the barrel cannot both point at the
+viewer — on this pose they are 57° apart. `FACE_FRONT` at the top of the file
+picks where to sit on that trade-off: `1` (the default) squares the shoulders to
+the camera, `0` turns him until the muzzle tracks the cursor, and anything
+between is a partial turn.
+
 Swapping in a different operator means replacing the GLB and, if the bone names
 differ, editing `bones`. Pose it however you like — posed is what this wants.
 
