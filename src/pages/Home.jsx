@@ -236,7 +236,7 @@ const Home = () => {
           ))}
         </div>
         <div className="loadout__more">
-          <Link to="/projects" className="btn btn-secondary">See every project &#8594;</Link>
+          <Link to="/projects" className="btn btn-secondary">View my armory &#8594;</Link>
         </div>
       </section>
 
